@@ -1,0 +1,6 @@
+*.js
+*.js.map
+*.d.ts
+/sourcemaps/
+/node_modules/
+/dist/
