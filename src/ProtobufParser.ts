@@ -59,12 +59,12 @@ export async function forumResDeserialize(buffer: Buffer) {
   }
 }
 
-export async function postReqSerialize(params: any) {
+export async function postReqSerialize(params: URLSearchParams) {
   let root = pbjs.loadSync("proto/GetPosts/PbPageReqIdl.proto").resolveAll();
   const Proto = root.lookupType("PbPageReqIdl");
   const payload: any = {
     data: {
-      kz: params['tid'],
+      kz: 9184321095,
       pn: params['page'] || 1,
       rn: params['rn'] || 30, //最大30
       // 1 时间倒序 2 热门排序 3及以上 时间正序
@@ -85,6 +85,7 @@ export async function postReqSerialize(params: any) {
 
   const message = Proto.create(payload);
   const buffer = Proto.encode(message).finish()
+  console.log(Proto.decode(buffer).toJSON());
   return Buffer.from(buffer);
 }
 
@@ -92,10 +93,14 @@ export async function postResDeserialize(buffer: Buffer) {
   let root = pbjs.loadSync("proto/GetPosts/PbPageResIdl.proto").resolveAll();
   const Proto = root.lookupType("PbPageResIdl");
   let decoded = Proto.decode(buffer).toJSON();
-  return decoded.data;
+  if (decoded.error !== 0) {
+    console.error(`${decoded.error}`)
+  } else {
+    return decoded.data;
+  }
 }
 
-export async function threadReqSerialize(params: any) {
+export async function threadReqSerialize(params: URLSearchParams) {
   let root = pbjs.loadSync("proto/GetThreads/FrsPageReqIdl.proto").resolveAll();
   const Proto = root.lookupType("FrsPageReqIdl");
   const payload = {
