@@ -1,63 +1,38 @@
-// tbclient.ThreadInfo
+// tbclient.FrsPage.FrsPageResIdl
 syntax = "proto3";
 
+import "../Error.proto";
+import "../Page.proto";
+import "../ThreadInfo.proto";
 import "../User.proto";
-import "../Voice.proto";
-import "../PollInfo.proto";
-import "../VideoInfo.proto";
-import "../PbContent.proto";
-import "../Agree.proto";
-import "../Media.proto";
+import "../FrsTabInfo.proto";
 
-message ThreadInfo {
-    int64 id = 1;
-    string title = 3;
-    int32 reply_num = 4;
-    int32 view_num = 5;
-    int32 last_time_int = 7;
-    int32 is_top = 9;
-    int32 is_good = 10;
-    int32 is_voice_thread = 15;
-    User author = 18;
-    repeated Voice voice_info = 23;
-    int32 thread_type = 26;
-    int64 fid = 27;
-    string fname = 28;
-    int32 is_livepost = 30;
-    int64 first_post_id = 40;
-    int32 create_time = 45;
-    int64 post_id = 52;
-    int64 author_id = 56;
-    uint32 is_ad = 59;
-    PollInfo poll_info = 74;
-    VideoInfo video_info = 79;
-    int32 is_godthread_recommend = 85;
-    Agree agree = 126;
-    int32 share_num = 135;
-    message OriginThreadInfo {
-        string title = 1; 
-        repeated Media media = 2;
-        string fname = 4;
-        string tid = 5;
-        int64 fid = 7;
-        repeated Voice voice_info = 12;
-        VideoInfo video_info = 13;
-        repeated PbContent content = 14;
-        PollInfo poll_info = 21;
-        int64 pid = 25;
+message FrsPageResIdl {
+    Error error = 1;
+    message DataRes {
+        message ForumInfo {
+            int64 id = 1;
+            string name = 2;
+            string first_class = 3;
+            string second_class = 4;
+            int32 member_num = 9;
+            int32 thread_num = 10;
+            int32 post_num = 11;
+            message Manager {}
+            repeated Manager managers = 17;
+        }
+        ForumInfo forum = 2;
+        Page page = 4;
+        repeated ThreadInfo thread_list = 7;
+        repeated User user_list = 17;
+        message NavTabInfo {
+            repeated FrsTabInfo tab = 1;
+        }
+        NavTabInfo nav_tab_info = 37;
+        message ForumRuleStatus {
+            int32 has_forum_rule = 4;
+        }
+        ForumRuleStatus forum_rule = 105;
     }
-    OriginThreadInfo origin_thread_info = 141;
-    repeated PbContent first_post_content = 142;
-    int32 is_share_thread = 143;
-    int32 tab_id = 175;
-    int32 is_deleted = 181;
-    int32 is_frs_mask = 198;
-    message CustomFigure {
-        string background_value = 3;
-    }
-    CustomFigure custom_figure = 211;
-    message CustomState {
-        string content = 2;
-    }
-    CustomState custom_state = 212;
+    DataRes data = 2;
 }

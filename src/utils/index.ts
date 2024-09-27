@@ -47,6 +47,7 @@ export async function postProtobuf(url: string, buffer: Buffer) {
 
   if (response) {
     const buffer = await response.arrayBuffer();
+    console.log(buffer);
     return Buffer.from(buffer);
   }
   throw new Error('Fetch failed');

@@ -59,12 +59,24 @@ export async function forumResDeserialize(buffer: Buffer) {
   }
 }
 
-export async function postReqSerialize(params: URLSearchParams) {
+export type postReq = {
+  tid: number,
+  page?: number,
+  rn?: 1|2|3,
+  sort?: number,
+  onlyThreadAuthor?: boolean,
+  withComment?: boolean,
+  commentRn?: number,
+  CommentsSortByTime?: boolean
+}
+
+
+export async function postReqSerialize(params: postReq) {
   let root = pbjs.loadSync("proto/GetPosts/PbPageReqIdl.proto").resolveAll();
   const Proto = root.lookupType("PbPageReqIdl");
   const payload: any = {
     data: {
-      kz: 9184321095,
+      kz: params['tid'],
       pn: params['page'] || 1,
       rn: params['rn'] || 30, //最大30
       // 1 时间倒序 2 热门排序 3及以上 时间正序
@@ -76,16 +88,15 @@ export async function postReqSerialize(params: URLSearchParams) {
       }
     }
   };
-  if (params.hasOwnProperty('withComment')) {
+  if (params.withComment) {
     payload.data.common.BDUSS = process.env.BDUSS;
     payload.data.withFloor = true;
-    payload.data.floorSortType = params.hasOwnProperty('CommentsSortByTime') ? false : true;
+    payload.data.floorSortType = !params['commentsSortByTime'];
     payload.data.floorRn = params['commentRn'] || '4';
   }
 
   const message = Proto.create(payload);
   const buffer = Proto.encode(message).finish()
-  console.log(Proto.decode(buffer).toJSON());
   return Buffer.from(buffer);
 }
 
@@ -96,23 +107,31 @@ export async function postResDeserialize(buffer: Buffer) {
   if (decoded.error !== 0) {
     console.error(`${decoded.error}`)
   } else {
-    return decoded.data;
+    return await decoded.data;
   }
 }
 
-export async function threadReqSerialize(params: URLSearchParams) {
+export type threadReq = {
+  fname: string,
+  page?: number,
+  rn?: number,
+  sort?: 1|2|3|4|5,
+  OnlyGood?: boolean
+}
+
+export async function threadReqSerialize(params: threadReq) {
   let root = pbjs.loadSync("proto/GetThreads/FrsPageReqIdl.proto").resolveAll();
   const Proto = root.lookupType("FrsPageReqIdl");
   const payload = {
     data: {
-      kw: params['fname'],
-      pn: params['page'] || 1,
+      kw: params.fname,
+      pn: params.page || 1,
       rn: 105,
-      rnNeed: params['rn'] > 0 ? params['rn'] : 30, // 最大100
-      isGood: params.hasOwnProperty('OnlyGood'),
+      rnNeed: params.rn ? Math.max(params.rn, 30) : 30, // 最大100
+      isGood: params.OnlyGood !== undefined ?  params.OnlyGood : false,
       // 对于有热门分区的贴吧 0热门排序(HOT) 1按发布时间(CREATE) 2关注的人(FOLLOW) 34热门排序(HOT) >=5是按回复时间(REPLY)
       // 对于无热门分区的贴吧 0按回复时间(REPLY) 1按发布时间(CREATE) 2关注的人(FOLLOW) >=3按回复时间(REPLY)
-      sortType: params['sort'] || 1,
+      sortType: params.sort || 1,
       common: {
         _clientType: 2,
         _clientVersion: "12.59.1.0",
@@ -121,7 +140,7 @@ export async function threadReqSerialize(params: URLSearchParams) {
   };
   const message = Proto.create(payload);
   const buffer = Proto.encode(message).finish()
-  console.log(Proto.decode(Buffer.from(buffer)))  // debug;
+  console.log(Proto.decode(Buffer.from(buffer)).toJSON())
   return Buffer.from(buffer);
 }
 
@@ -129,5 +148,11 @@ export async function threadResDeserialize(buffer) {
   let root = pbjs.loadSync("proto/GetThreads/FrsPageResIdl.proto").resolveAll();
   const Proto = root.lookupType("FrsPageResIdl");
   let decoded = Proto.decode(Buffer.from(buffer)).toJSON();
-  return decoded.data;
+   console.dir(decoded)
+  if (decoded.error !== 0) {
+    console.error(`${decoded.error}`)
+  } else {
+    console.log(decoded.data)
+    return await decoded.data;
+  }
 }
