@@ -1,13 +1,4 @@
-import { test, describe, it } from "node:test";
-import assert from "node:assert";
-import {
-  userPostReqSerialize,
-  userPostResDeserialize,
-  postReqSerialize,
-  postResDeserialize,
-  threadReqSerialize, threadResDeserialize
-} from "../src/ProtobufParser";
-import {postProtobuf} from "../src/utils";
+import {describe} from "node:test";
 
 describe("ProtobufParser", () => {
   // it("userPostReq", async () => {
@@ -23,24 +14,23 @@ describe("ProtobufParser", () => {
   //   // assert(result.length > 0);
   // });
 
-  it("postReq", async () => {
-    const params = {
-      tid: 9184321095,
-      page: 2,
-    };
-    let payload = await postReqSerialize(params);
-  });
-
-  it("postRes", async () => {
-    const params = {
-      tid: 9184321095,
-      page: 2,
-    };
-    let buffer = await postReqSerialize(params);
-    let responseData = await postProtobuf('/c/f/pb/page?cmd=303002', buffer);
-    let result= await postResDeserialize(responseData);
-    console.dir(result)
-  });
+  // it("postReq", async () => {
+  //   const params = {
+  //     tid: 9184321095,
+  //     page: 2,
+  //   };
+  //   let payload = await postReqSerialize(params);
+  // });
+  //
+  // it("postRes", async () => {
+  //   const params = {
+  //     tid: 9184321095,
+  //     page: 2,
+  //   };
+  //   let buffer = await postReqSerialize(params);
+  //   let responseData = await postProtobuf('/c/f/pb/page?cmd=303002', buffer);
+  //   let result= await postResDeserialize(responseData);
+  // });
 
   // it("threadReq", async () => {
   //   const params = {

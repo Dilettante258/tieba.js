@@ -1,6 +1,5 @@
-import crypto from "crypto";
 // import {forumReqSerialize, forumResDeserialize} from "../ProtobufParser";
-import { Buffer } from 'buffer';
+import {Buffer} from 'buffer';
 
 export const baseUrl = 'https://tiebac.baidu.com'
 export const timeFormat = Intl.DateTimeFormat('zh-CN', {
@@ -8,11 +7,11 @@ export const timeFormat = Intl.DateTimeFormat('zh-CN', {
   dateStyle: "short",
 });
 
-if (process.env.BDUSS) {
-  const defaultBDUSS = process.env.BDUSS;
-} else {
-  throw new Error("BDUSS环境变量未设置!")
-}
+// if (process.env.BDUSS) {
+//   const defaultBDUSS = process.env.BDUSS;
+// } else {
+//   throw new Error("BDUSS环境变量未设置!")
+// }
 
 
 export async function postFormData(url: string, data: any) {
@@ -44,10 +43,8 @@ export async function postProtobuf(url: string, buffer: Buffer) {
   }).catch(error => {
     console.error('Fetch failed:', error);
   });
-
   if (response) {
     const buffer = await response.arrayBuffer();
-    console.log(buffer);
     return Buffer.from(buffer);
   }
   throw new Error('Fetch failed');

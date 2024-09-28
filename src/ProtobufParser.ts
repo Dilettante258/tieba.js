@@ -22,7 +22,7 @@ export async function userPostResDeserialize(buffer: Buffer) {
   let root = pbjs.loadSync("proto/UserPostResIdl.proto").resolveAll();
   const Proto = root.lookupType("UserPostResIdl");
   let decoded = Proto.decode(Buffer.from(buffer)).toJSON();
-  if (decoded.error !== 0) {
+  if (decoded.error.errorno !== 0) {
     console.error(`${decoded.error}`)
   } else {
     let data = decoded.data.postList;
@@ -50,7 +50,7 @@ export async function forumResDeserialize(buffer: Buffer) {
   let root = pbjs.loadSync("proto/Forum/GetForumDetailResIdl.proto").resolveAll();
   const Proto = root.lookupType("GetForumDetailResIdl");
   let decoded = Proto.decode(buffer).toJSON();
-  if (decoded.error !== 0) {
+  if (decoded.error.errorno !== 0) {
     console.error(`${decoded.error}`)
   } else {
     let data = decoded.data.forumInfo;
@@ -100,14 +100,15 @@ export async function postReqSerialize(params: postReq) {
   return Buffer.from(buffer);
 }
 
-export async function postResDeserialize(buffer: Buffer) {
-  let root = pbjs.loadSync("proto/GetPosts/PbPageResIdl.proto").resolveAll();
+export function postResDeserialize(buffer: Buffer) {
+  const root = pbjs.loadSync("proto/GetPosts/PbPageResIdl.proto").resolveAll();
   const Proto = root.lookupType("PbPageResIdl");
-  let decoded = Proto.decode(buffer).toJSON();
-  if (decoded.error !== 0) {
+  const decoded = Proto.decode(buffer).toJSON();
+  if (decoded.error.errorno !== 0) {
     console.error(`${decoded.error}`)
   } else {
-    return await decoded.data;
+    console.debug('test')
+    return decoded.data;
   }
 }
 
