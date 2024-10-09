@@ -1,6 +1,8 @@
 // import {forumReqSerialize, forumResDeserialize} from "../ProtobufParser";
 import {Buffer} from 'buffer';
 import {createHash} from 'crypto';
+import {RawUserPost} from "../UserPost";
+import {getForumName} from "../Forum";
 
 export const baseUrl = 'https://tiebac.baidu.com'
 export const timeFormat = Intl.DateTimeFormat('zh-CN', {
@@ -74,133 +76,43 @@ export function packRequest(data: any) {
   return Array.from(params.entries()).map(entry => entry.join('=')).join('&');
 }
 
-// export function countUserAttributes(userList) {
-//   const counts = {
-//     ipAddress: {},
-//     levelId: {},
-//     gender: {}
-//   };
+export type UserPost = {
+  forumId: number,
+  forumName: string,
+  title: string,
+  threadId: string,
+  postId: string,
+  cid: string,
+  createTime: string,
+  affiliated: boolean,
+  content: string,
+  replyTo: string,
+}
 
-//   for (const obj of userList) {
-//     const { ipAddress, levelId, gender } = obj;
-
-//     // 统计 ipAddress 出现次数
-//     if (ipAddress) {
-//       if (counts.ipAddress[ipAddress]) {
-//         counts.ipAddress[ipAddress]++;
-//       } else {
-//         counts.ipAddress[ipAddress] = 1;
-//       }
-//     }
-
-//     // 统计 levelId 出现次数
-//     if (levelId) {
-//       if (counts.levelId[levelId]) {
-//         counts.levelId[levelId]++;
-//       } else {
-//         counts.levelId[levelId] = 1;
-//       }
-//     }
-
-//     // 统计 gender 出现次数
-//     if (gender !== undefined) {
-//       if (counts.gender[gender]) {
-//         counts.gender[gender]++;
-//       } else {
-//         counts.gender[gender] = 1;
-//       }
-//     }
-//   }
-
-//   // 转换成所需的格式
-//   const ipAddressResult = [];
-
-//   // ipAddress按倒序排列
-//   const sortIpList = Object.entries(counts.ipAddress).sort((a, b) => b[1] - a[1]);
-
-//   for (const item of sortIpList) {
-//     ipAddressResult.push({ name: item[0], value: item[1] });
-//   }
-
-//   counts.ipAddress = ipAddressResult;
-
-//   return counts;
-// }
-
-// export async function handlePromises(promises, maxConcurrent = 100, delay = 1000) {
-//   const results = [];
-//   for (let i = 0; i < promises.length; i += maxConcurrent) {
-//       const chunk = promises.slice(i, i + maxConcurrent);
-//       results.push(...await Promise.all(chunk));
-//       if (i + maxConcurrent < promises.length) {
-//           await new Promise(resolve => setTimeout(resolve, delay));
-//       }
-//   }
-//   return results;
-// }
-
-// export function mergeCounters(array) {
-//   let result = {
-//       emojicounter: {},
-//       emoticonCounter: {},
-//       userAttributesCount: {
-//           ipAddress: [],
-//           levelId: {},
-//           gender: {}
-//       },
-//       timeLine: []
-//   };
-
-//   array.forEach(item => {
-//       // Merge emojicounter
-//       for (let emoji in item.emojicounter) {
-//           if (result.emojicounter[emoji]) {
-//               result.emojicounter[emoji] += item.emojicounter[emoji];
-//           } else {
-//               result.emojicounter[emoji] = item.emojicounter[emoji];
-//           }
-//       }
-
-//       // Merge emoticonCounter
-//       for (let emoticon in item.emoticonCounter) {
-//           if (result.emoticonCounter[emoticon]) {
-//               result.emoticonCounter[emoticon] += item.emoticonCounter[emoticon];
-//           } else {
-//               result.emoticonCounter[emoticon] = item.emoticonCounter[emoticon];
-//           }
-//       }
-
-//       // Merge userAttributesCount.ipAddress
-//       item.userAttributesCount.ipAddress.forEach(ip => {
-//           let index = result.userAttributesCount.ipAddress.findIndex(i => i.name === ip.name);
-//           if (index !== -1) {
-//               result.userAttributesCount.ipAddress[index].value += ip.value;
-//           } else {
-//               result.userAttributesCount.ipAddress.push({ ...ip });
-//           }
-//       });
-
-//       // Merge userAttributesCount.levelId
-//       for (let level in item.userAttributesCount.levelId) {
-//           if (result.userAttributesCount.levelId[level]) {
-//               result.userAttributesCount.levelId[level] += item.userAttributesCount.levelId[level];
-//           } else {
-//               result.userAttributesCount.levelId[level] = item.userAttributesCount.levelId[level];
-//           }
-//       }
-
-//       // Merge userAttributesCount.gender
-//       for (let gender in item.userAttributesCount.gender) {
-//           if (result.userAttributesCount.gender[gender]) {
-//               result.userAttributesCount.gender[gender] += item.userAttributesCount.gender[gender];
-//           } else {
-//               result.userAttributesCount.gender[gender] = item.userAttributesCount.gender[gender];
-//           }
-//       }
-
-//       // Merge timeLine
-//       result.timeLine = result.timeLine.concat(item.timeLine).sort((a, b) => a - b);
-//   });
-
-//   return result;
-// }
+export async function processUserPosts(posts: RawUserPost[], needForumName = false): Promise<UserPost[]> {
+  let result: UserPost[] = [];
+  for (let post of posts) {
+    const forumName_ = needForumName ? await getForumName(Number(post.forumId)) : '';
+    for (let content of post.content) {
+      let affiliated = content.postType === "1";
+      let isReply = affiliated && content?.postContent[1]?.type === 4;
+      result.push({
+        forumId: Number(post.forumId),
+        forumName: forumName_,
+        title: post.title.slice(3),
+        threadId: String(post.threadId),
+        postId: String(content.postId),
+        cid: String(content.postId),
+        createTime: timeFormat.format(new Date(Number(content.createTime) * 1000)),
+        affiliated: affiliated,
+        content: (isReply) ?
+          content.postContent[2].text.slice(2) :
+          (content.postContent.length === 1 ?
+              content.postContent[0].text : content.postContent.map(item => item.text).join('')
+          ),
+        replyTo: isReply ? content.postContent[1].text : "",
+      });
+    }
+  }
+  return result;
+}

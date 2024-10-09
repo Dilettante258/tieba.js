@@ -37,7 +37,7 @@ export async function forumReqSerialize(forumId: number) {
     data: {
       forumId: forumId,
       common: {
-        _clientVersion: "12.59.1.0",
+        _clientVersion: "12.64.1.1",
       }
     }
   };
@@ -84,7 +84,7 @@ export async function postReqSerialize(params: postReq) {
       lz: params['onlyThreadAuthor'] || false,
       common: {
         _clientType: 2,
-        _clientVersion: "12.59.1.0",
+        _clientVersion: "12.64.1.1",
       }
     }
   };
@@ -135,7 +135,7 @@ export async function threadReqSerialize(params: threadReq) {
       sortType: params.sort || 1,
       common: {
         _clientType: 2,
-        _clientVersion: "12.59.1.0",
+        _clientVersion: "12.64.1.1",
       }
     }
   };
