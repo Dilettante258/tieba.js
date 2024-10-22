@@ -46,10 +46,10 @@ export interface PostContent {
   text: string
 }
 
-export async function getUserPost(uid: number, pn: number): Promise<UserPost>;
-export async function getUserPost(uid: number, from: number, to: number): Promise<UserPost>;
+export async function getUserPost(uid: number, pn: number): Promise<UserPost[]>;
+export async function getUserPost(uid: number, from: number, to: number): Promise<UserPost[]>;
 
-export async function getUserPost(uid: number, param2: number, param3?: number): Promise<UserPost> {
+export async function getUserPost(uid: number, param2: number, param3?: number): Promise<UserPost[]> {
   if (param3 === undefined) {
     const RawUserPost = await getRawUserPost(uid, param2);
     return await processUserPosts(RawUserPost, true);

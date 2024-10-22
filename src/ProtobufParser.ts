@@ -150,10 +150,41 @@ export async function threadResDeserialize(buffer) {
   const Proto = root.lookupType("FrsPageResIdl");
   let decoded = Proto.decode(Buffer.from(buffer)).toJSON();
    console.dir(decoded)
-  if (decoded.error !== 0) {
+  if (decoded.error.errorno !== 0) {
     console.error(`${decoded.error}`)
   } else {
     console.log(decoded.data)
     return await decoded.data;
+  }
+}
+
+
+export async function GetUserByUidReqSerialize(uid: number) {
+  let root = pbjs.loadSync("./proto/GetUserByUid/DataReq.proto").resolveAll();
+  const Proto = root.lookupType("GetUserByUidReqIdl");
+  const payload = {
+    data: {
+      tiebaUid: uid.toString(),
+      common: {
+        _clientType: 2,
+        _clientVersion: "12.64.1.1",
+      }
+    }
+  };
+  const message = Proto.create(payload);
+  const buffer = Proto.encode(message).finish()
+  console.log(Proto.decode(Buffer.from(buffer)).toJSON())
+  return Buffer.from(buffer);
+}
+
+export async function GetUserByUidResDeserialize(buffer) {
+  let root = pbjs.loadSync("./proto/GetUserByUid/DataRes.proto").resolveAll();
+  const Proto = root.lookupType("GetUserByUidResIdl");
+  let decoded = Proto.decode(Buffer.from(buffer)).toJSON();
+  if (decoded.error.errorno !== 0) {
+    console.error(`${decoded.error}`)
+  } else {
+    console.log(JSON.stringify(decoded.data.user))
+    return await decoded.data.user;
   }
 }
