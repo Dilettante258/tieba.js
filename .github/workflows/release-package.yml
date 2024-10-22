@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: ln -s $(pwd)/proto $(pwd)/dist/proto
+      - run: path=/home/runner/work/tieba.js && ln -s $path/proto $path/dist/proto
       - run: npm ci
       - run: npm publish --provenance --access public
         env:
