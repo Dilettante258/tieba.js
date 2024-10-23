@@ -8,6 +8,6 @@ cmd /c mklink /J  %cd%\src\proto %cd%\dist\proto
 ```
 
 ```bash
-ln -s $(pwd)/proto $(pwd)/dist/proto
+ln -s ./dist/proto ./proto 
 ```
 
