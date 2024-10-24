@@ -19,14 +19,13 @@ export async function userPostReqSerialize(uid: number, pn: number) {
 }
 
 export async function userPostResDeserialize(buffer: Buffer) {
-  let root = pbjs.loadSync("./proto/UserPostResIdl.proto").resolveAll();
+  let root = pbjs.loadSync("proto/UserPostResIdl.proto").resolveAll();
   const Proto = root.lookupType("UserPostResIdl");
   let decoded = Proto.decode(Buffer.from(buffer)).toJSON();
   if (decoded.error.errorno !== 0) {
     console.error(`${decoded.error}`)
   } else {
-    let data = decoded.data.postList;
-    return data;
+    return decoded.data.postList;
   }
 }
 
@@ -54,8 +53,7 @@ export async function forumResDeserialize(buffer: Buffer) {
     console.error(`${decoded.error}`)
   } else {
     let data = decoded.data.forumInfo;
-    let forumName = data.forumName;
-    return forumName;
+    return data.forumName;
   }
 }
 
@@ -149,12 +147,10 @@ export async function threadResDeserialize(buffer) {
   let root = pbjs.loadSync("./proto/GetThreads/FrsPageResIdl.proto").resolveAll();
   const Proto = root.lookupType("FrsPageResIdl");
   let decoded = Proto.decode(Buffer.from(buffer)).toJSON();
-   console.dir(decoded)
   if (decoded.error.errorno !== 0) {
     console.error(`${decoded.error}`)
   } else {
-    console.log(decoded.data)
-    return await decoded.data;
+    return decoded.data;
   }
 }
 
@@ -184,7 +180,6 @@ export async function GetUserByUidResDeserialize(buffer) {
   if (decoded.error.errorno !== 0) {
     console.error(`${decoded.error}`)
   } else {
-    console.log(JSON.stringify(decoded.data.user))
-    return await decoded.data.user;
+    return decoded.data.user;
   }
 }

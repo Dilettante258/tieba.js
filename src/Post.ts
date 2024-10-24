@@ -1,7 +1,9 @@
 import {postReq, postReqSerialize, postResDeserialize} from "./ProtobufParser";
 import {postProtobuf} from "./utils";
-import {util} from "protobufjs";
+import {PostList, UserList} from "./types";
 
+const maxPage = 600;
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function getPostPipeline(params: postReq) {
   let buffer = await postReqSerialize(params);
@@ -27,8 +29,33 @@ export async function getPost(tid: number, page: number|'ALL', onlyThreadAuthor?
     }
   }
   if (page === 'ALL') {
-    // func(1).then((data:any) => {console.log(data)})
-    return Promise.all(Array.from({ length: 30 }, (_, i) => func(i + 1)));
+    const page1 = await func(1);
+    const totalPage = Math.min(page1.page.totalPage, Number(maxPage));
+    let batch = 1;
+    if (totalPage > 70 && totalPage <= 250) batch = 2;
+    if (totalPage > 250) batch = 3;
+    if (totalPage > 400) batch = 4;
+    if (totalPage > 600) batch = 8;
+    const batchSize = Math.ceil(totalPage / batch);
+
+    let allPosts: Array<PostList> = [];
+    let allUsers: Array<UserList> = [];
+    for (let b = 0; b < batch; b++) {
+      const promises: Array<Promise<any>> = [];
+      for (let i = b * batchSize + 2; i <= (b + 1) * batchSize && i <= totalPage; i++) {
+        promises.push(func(i));
+      }
+      let results = await Promise.all(promises);
+      results = results.flat();
+      const batchPosts = results.map(item => item.postList).reduce((acc, val) => acc.concat(val), []);
+      const batchUsers = results.map(item => item.userList).reduce((acc, val) => acc.concat(val), []);
+      allPosts.push(...batchPosts);
+      allUsers.push(...batchUsers);
+      if (b < batch - 1) await delay(1000);
+    }
+    page1.postList.push(...allPosts);
+    page1.userList.push(...allUsers);
+    return page1;
   } else {
     func(page).then(console.log)
     return await func(page);

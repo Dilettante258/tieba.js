@@ -1,8 +1,6 @@
-// import {forumReqSerialize, forumResDeserialize} from "../ProtobufParser";
-import {Buffer} from 'buffer';
-import {createHash} from 'crypto';
 import {RawUserPost} from "../UserPost";
 import {getForumName} from "../Forum";
+import {Buffer} from 'buffer';
 
 export const baseUrl = 'https://tiebac.baidu.com'
 export const timeFormat = Intl.DateTimeFormat('zh-CN', {
