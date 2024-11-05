@@ -5,9 +5,10 @@ import {
   threadReqSerialize,
   threadResDeserialize
 } from "./ProtobufParser";
-import {postProtobuf} from "./utils";
+import {postProtobuf, processThread} from "./utils";
+import {ForumThreadRes} from "./types";
 
-async function threadPipeline(params: threadReq) {
+async function threadPipeline(params: threadReq): Promise<ForumThreadRes> {
   let buffer = await threadReqSerialize(params);
   let responseData = await postProtobuf('/c/f/frs/page?cmd=303002', buffer);
   return threadResDeserialize(responseData);
@@ -15,6 +16,12 @@ async function threadPipeline(params: threadReq) {
 
 export async function getRawThread(params: threadReq) {
   return await threadPipeline(params);
+}
+
+export async function getThread(params: threadReq) {
+  let threads = await threadPipeline(params);
+  threads.threadList = threads.threadList.map(processThread)
+  return threads;
 }
 
 export async function getThreadPid(params: threadReq) {

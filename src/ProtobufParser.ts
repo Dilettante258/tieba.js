@@ -1,4 +1,4 @@
-import pbjs from 'protobufjs';
+import pbjs, {Buffer} from 'protobufjs';
 
 export async function userPostReqSerialize(uid: number, pn: number) {
   let root = pbjs.loadSync("./proto/UserPostReqIdl.proto").resolveAll();
@@ -19,7 +19,7 @@ export async function userPostReqSerialize(uid: number, pn: number) {
 }
 
 export async function userPostResDeserialize(buffer: Buffer) {
-  let root = pbjs.loadSync("proto/UserPostResIdl.proto").resolveAll();
+  let root = pbjs.loadSync("./proto/UserPostResIdl.proto").resolveAll();
   const Proto = root.lookupType("UserPostResIdl");
   let decoded = Proto.decode(Buffer.from(buffer)).toJSON();
   if (decoded.error.errorno !== 0) {
@@ -143,7 +143,7 @@ export async function threadReqSerialize(params: threadReq) {
   return Buffer.from(buffer);
 }
 
-export async function threadResDeserialize(buffer) {
+export async function threadResDeserialize(buffer: Buffer) {
   let root = pbjs.loadSync("./proto/GetThreads/FrsPageResIdl.proto").resolveAll();
   const Proto = root.lookupType("FrsPageResIdl");
   let decoded = Proto.decode(Buffer.from(buffer)).toJSON();
