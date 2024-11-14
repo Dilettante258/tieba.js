@@ -1,7 +1,9 @@
-import pbjs, {Buffer} from 'protobufjs';
+import pbjs, {Buffer as BufferType} from 'protobufjs';
+import {Buffer} from "buffer";
+import {join} from 'path'
 
 export async function userPostReqSerialize(uid: number, pn: number) {
-  let root = pbjs.loadSync("./proto/UserPostReqIdl.proto").resolveAll();
+  let root = pbjs.loadSync(join(__dirname, "./proto/UserPostReqIdl.proto")).resolveAll();
   const Proto = root.lookupType("UserPostReqIdl");
   const payload = {
     data: {
@@ -18,8 +20,8 @@ export async function userPostReqSerialize(uid: number, pn: number) {
   return Buffer.from(buffer);
 }
 
-export async function userPostResDeserialize(buffer: Buffer) {
-  let root = pbjs.loadSync("./proto/UserPostResIdl.proto").resolveAll();
+export async function userPostResDeserialize(buffer: BufferType) {
+  let root = pbjs.loadSync(join(__dirname, "./proto/UserPostResIdl.proto")).resolveAll();
   const Proto = root.lookupType("UserPostResIdl");
   let decoded = Proto.decode(Buffer.from(buffer)).toJSON();
   if (decoded.error.errorno !== 0) {
@@ -30,7 +32,7 @@ export async function userPostResDeserialize(buffer: Buffer) {
 }
 
 export async function forumReqSerialize(forumId: number) {
-  let root = pbjs.loadSync("./proto/Forum/GetForumDetailReqIdl.proto").resolveAll();
+  let root = pbjs.loadSync(join(__dirname, "./proto/Forum/GetForumDetailReqIdl.proto")).resolveAll();
   const Proto = root.lookupType("GetForumDetailReqIdl");
   const payload = {
     data: {
@@ -45,8 +47,8 @@ export async function forumReqSerialize(forumId: number) {
   return Buffer.from(buffer);
 }
 
-export async function forumResDeserialize(buffer: Buffer) {
-  let root = pbjs.loadSync("./proto/Forum/GetForumDetailResIdl.proto").resolveAll();
+export async function forumResDeserialize(buffer: BufferType) {
+  let root = pbjs.loadSync(join(__dirname, "./proto/Forum/GetForumDetailResIdl.proto")).resolveAll();
   const Proto = root.lookupType("GetForumDetailResIdl");
   let decoded = Proto.decode(buffer).toJSON();
   if (decoded.error.errorno !== 0) {
@@ -70,7 +72,7 @@ export type postReq = {
 
 
 export async function postReqSerialize(params: postReq) {
-  let root = pbjs.loadSync("./proto/GetPosts/PbPageReqIdl.proto").resolveAll();
+  let root = pbjs.loadSync(join(__dirname, "./proto/GetPosts/PbPageReqIdl.proto")).resolveAll();
   const Proto = root.lookupType("PbPageReqIdl");
   const payload: any = {
     data: {
@@ -98,14 +100,13 @@ export async function postReqSerialize(params: postReq) {
   return Buffer.from(buffer);
 }
 
-export function postResDeserialize(buffer: Buffer) {
-  const root = pbjs.loadSync("./proto/GetPosts/PbPageResIdl.proto").resolveAll();
+export function postResDeserialize(buffer: BufferType) {
+  const root = pbjs.loadSync(join(__dirname, "./proto/GetPosts/PbPageResIdl.proto")).resolveAll();
   const Proto = root.lookupType("PbPageResIdl");
   const decoded = Proto.decode(buffer).toJSON();
   if (decoded.error.errorno !== 0) {
     console.error(`${decoded.error}`)
   } else {
-    console.debug('test')
     return decoded.data;
   }
 }
@@ -119,7 +120,7 @@ export type threadReq = {
 }
 
 export async function threadReqSerialize(params: threadReq) {
-  let root = pbjs.loadSync("./proto/GetThreads/FrsPageReqIdl.proto").resolveAll();
+  let root = pbjs.loadSync(join(__dirname, "./proto/GetThreads/FrsPageReqIdl.proto")).resolveAll();
   const Proto = root.lookupType("FrsPageReqIdl");
   const payload = {
     data: {
@@ -139,12 +140,11 @@ export async function threadReqSerialize(params: threadReq) {
   };
   const message = Proto.create(payload);
   const buffer = Proto.encode(message).finish()
-  console.log(Proto.decode(Buffer.from(buffer)).toJSON())
   return Buffer.from(buffer);
 }
 
-export async function threadResDeserialize(buffer: Buffer) {
-  let root = pbjs.loadSync("./proto/GetThreads/FrsPageResIdl.proto").resolveAll();
+export async function threadResDeserialize(buffer: BufferType) {
+  let root = pbjs.loadSync(join(__dirname, "./proto/GetThreads/FrsPageResIdl.proto")).resolveAll();
   const Proto = root.lookupType("FrsPageResIdl");
   let decoded = Proto.decode(Buffer.from(buffer)).toJSON();
   if (decoded.error.errorno !== 0) {
@@ -156,7 +156,7 @@ export async function threadResDeserialize(buffer: Buffer) {
 
 
 export async function GetUserByUidReqSerialize(uid: number) {
-  let root = pbjs.loadSync("./proto/GetUserByUid/DataReq.proto").resolveAll();
+  let root = pbjs.loadSync(join(__dirname, "./proto/GetUserByUid/DataReq.proto")).resolveAll();
   const Proto = root.lookupType("GetUserByUidReqIdl");
   const payload = {
     data: {
@@ -169,12 +169,11 @@ export async function GetUserByUidReqSerialize(uid: number) {
   };
   const message = Proto.create(payload);
   const buffer = Proto.encode(message).finish()
-  console.log(Proto.decode(Buffer.from(buffer)).toJSON())
   return Buffer.from(buffer);
 }
 
-export async function GetUserByUidResDeserialize(buffer) {
-  let root = pbjs.loadSync("./proto/GetUserByUid/DataRes.proto").resolveAll();
+export async function GetUserByUidResDeserialize(buffer: BufferType) {
+  let root = pbjs.loadSync(join(__dirname, "./proto/GetUserByUid/DataRes.proto")).resolveAll();
   const Proto = root.lookupType("GetUserByUidResIdl");
   let decoded = Proto.decode(Buffer.from(buffer)).toJSON();
   if (decoded.error.errorno !== 0) {

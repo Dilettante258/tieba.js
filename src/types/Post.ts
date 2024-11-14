@@ -212,8 +212,9 @@ export interface OutputSubPostList {
   id: string;
   content: string;
   time: number;
-  authorId?: string;
+  authorId: string;
   otherId?: string;
+  otherName?: string;
 }
 
 export interface OutputPostList {

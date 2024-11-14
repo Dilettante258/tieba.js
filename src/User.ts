@@ -1,5 +1,5 @@
-import { GetUserByUidReqSerialize, GetUserByUidResDeserialize } from "./ProtobufParser";
-import { baseUrl, packRequest, postFormData, postProtobuf } from "./utils";
+import {GetUserByUidReqSerialize, GetUserByUidResDeserialize} from "./ProtobufParser";
+import {baseUrl, packRequest, postFormData, postProtobuf} from "./utils";
 
 export async function getInfo(username: string) {
   const res = await fetch(baseUrl + `/i/sys/user_json?un=${username}&ie=utf-8`);
@@ -29,15 +29,9 @@ export type UserInfoFromUid = {
 
 export async function GetUserByUid(uid: number):Promise<UserInfoFromUid> {
   const buffer = await GetUserByUidReqSerialize(uid);
-  let responseData = await postProtobuf('/c/u/user/GetUserByUid?cmd=309702', buffer);
+  let responseData = await postProtobuf('/c/u/user/getUserByTiebaUid?cmd=309702', buffer);
   return await GetUserByUidResDeserialize(responseData);
 }
-
-
-
-
-
-
 
 export async function getFan(uid: number, page?: number|'needAll') {
   let params  = {

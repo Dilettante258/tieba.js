@@ -1,6 +1,6 @@
 import {postReq, postReqSerialize, postResDeserialize} from "./ProtobufParser";
 import {postProtobuf} from "./utils";
-import {PostList, UserList} from "./types";
+import {PostList, PostRes, UserList} from "./types";
 
 const maxPage = 600;
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -12,12 +12,18 @@ async function getPostPipeline(params: postReq) {
 }
 
 
-export async function getPost(tid: number, page: number|'ALL'): Promise<any>;
-export async function getPost(tid: number, page: number|'ALL', onlyThreadAuthor: boolean, withComment: boolean): Promise<any>;
-export async function getPost(tid: number, page: number|'ALL', onlyThreadAuthor: boolean, withComment: boolean, commentParams: { commentRn: number, commentsSortByTime: boolean }): Promise<any>;
+export async function getPost(tid: number, page: number | 'ALL'): Promise<PostRes>;
+export async function getPost(tid: number, page: number | 'ALL', onlyThreadAuthor: boolean, withComment: boolean): Promise<PostRes>;
+export async function getPost(tid: number, page: number | 'ALL', onlyThreadAuthor: boolean, withComment: boolean, commentParams: {
+  commentRn: number,
+  commentsSortByTime: boolean
+}): Promise<PostRes>;
 
 
-export async function getPost(tid: number, page: number|'ALL', onlyThreadAuthor?: boolean, withComment?: boolean, commentParams?: { commentRn: number, commentsSortByTime: boolean }): Promise<any> {
+export async function getPost(tid: number, page: number | 'ALL', onlyThreadAuthor?: boolean, withComment?: boolean, commentParams?: {
+  commentRn: number,
+  commentsSortByTime: boolean
+}): Promise<PostRes> {
   const func = async (pg: number) => {
     if(onlyThreadAuthor === undefined) {
       console.log('debug')

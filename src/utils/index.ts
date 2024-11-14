@@ -92,7 +92,6 @@ export async function processUserPosts(posts: RawUserPost[], needForumName = fal
         title: post.title.slice(3),
         threadId: post.threadId,
         postId: content.postId,
-        cid: content.postId,
         createTime: needPlainText ? timeFormat.format(new Date(Number(content.createTime) * 1000)) : content.createTime,
         affiliated: affiliated,
         content: (isReply) ?
@@ -125,23 +124,23 @@ export function processContent(data: PostListContent[] | FirstPostContent[]) {
       case 2:
       case 11:
         if (item.c === "升起") {
-          resultString += needPlainText ? " " : `#(生气)`;
+          resultString += `#(生气)`;
         } else {
-          resultString += needPlainText ? " " : `#[${item.c}]`;
+          resultString += `#(${item.c})`;
         }
         break;
       case 3:
       case 20:
-        resultString += needPlainText ? "#[图片]" : `\n#[图片](${item.cdnSrc})\n`;
+        resultString += needPlainText ? " #[图片] " : `\n#[图片](${item.cdnSrc})\n`;
         break;
       case 4:
-        resultString += needPlainText ? " " : `${item.text}`;
+        resultString += `${item.text}`;
         break;
       case 5:
-        resultString += needPlainText ? " " : `\n#[视频]\n`;
+        resultString += needPlainText ? " #[视频] " : `\n#[视频]\n`;
         break;
       case 10:
-        resultString += needPlainText ? " " : `\n#[语音]\n`;
+        resultString += needPlainText ? " #[语音] " : `\n#[语音]\n`;
         break;
       default:
         // 其他类型可以在这里处理，或者忽略
