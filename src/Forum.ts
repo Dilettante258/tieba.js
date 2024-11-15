@@ -5,7 +5,8 @@ import {
   threadReqSerialize,
   threadResDeserialize
 } from "./ProtobufParser";
-import {postProtobuf, processThread} from "./utils";
+import {postProtobuf, processThread, baseUrl, packRequest} from "./utils";
+import HTMLParser from 'node-html-parser';
 import {ForumThreadRes} from "./types";
 
 async function threadPipeline(params: threadReq): Promise<ForumThreadRes> {
@@ -55,4 +56,28 @@ export async function getForumInfoByID(forumId: number) {
     return "!!!Error!!!";
   }
   return await forumResDeserialize(res);
+}
+
+export async function getForumMembers(forumName: string, page: number) {
+  let url = new URL('/bawu2/platform/listMemberInfo', baseUrl);
+  url.searchParams.append('word',forumName)
+  url.searchParams.append('page',page.toString());
+  url.searchParams.append('ie','utf-8');
+  let res = await fetch(url).then((response) => response.arrayBuffer())
+  const decoder = new TextDecoder("gbk");
+  const resText = decoder.decode(res);
+  const doc = HTMLParser.parse(resText);
+  const data = doc.querySelectorAll('a.user_name').map((element) => {
+    return {
+      portrait: element.attributes.href.slice(14),
+      username: element.attributes.title,
+      nickname: element.innerText
+    }
+  })
+  const page_data = {
+    all: doc.querySelector('span.tbui_total_page')?.innerText,
+    now: page,
+    membersNumber: doc.querySelector('div.forum_info_section.member_wrap.clearfix.bawu-info > h1 > span.text')?.innerText
+  }
+  return {data, page_data}
 }
