@@ -1,7 +1,6 @@
 import {describe, it} from "node:test";
 import {baseUrl, packRequest} from "../src/utils";
 import HTMLParser from 'node-html-parser';
-import {util} from "protobufjs";
 
 const mainlandDivision = ["河北", "山西", "辽宁", "吉林", "黑龙江", "江苏", "浙江", "安徽", "福建", "江西", "山东", "河南", "湖北", "湖南", "广东", "海南", "四川", "贵州", "云南", "陕西", "甘肃", "青海", "内蒙古", "广西", "西藏", "宁夏", "新疆", "北京", "天津", "上海", "重庆"]
 //ts-ignore
@@ -15,12 +14,12 @@ describe("Forum", () => {
   //   })
   // }),
   it("getForumMember", async () => {
-    let params = {
+    const params = {
       word: "江南造船厂",
       page: 1,
       ie: "utf-8",
     }
-    let res = await fetch(baseUrl + '/bawu2/platform/listMemberInfo', {
+    const res = await fetch(baseUrl + '/bawu2/platform/listMemberInfo', {
       method: "POST",
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

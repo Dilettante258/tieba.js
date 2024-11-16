@@ -6,9 +6,9 @@ import {postProtobuf} from "../src/utils";
 describe("User", () => {
   it("GetUserByUid", async () => {
     const buffer = await GetUserByUidReqSerialize(443304357);
-    let responseData = await postProtobuf('/c/u/user/getUserByTiebaUid?cmd=309702', buffer);
+    const responseData = await postProtobuf('/c/u/user/getUserByTiebaUid?cmd=309702', buffer);
     console.log(responseData)
-    let data = await GetUserByUidResDeserialize(responseData)
+    const data = await GetUserByUidResDeserialize(responseData)
     console.log(data)
   });
 

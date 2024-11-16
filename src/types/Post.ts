@@ -1,4 +1,4 @@
-import {Agree} from "./common";
+import type {Agree} from "./common";
 
 export interface PostRes {
   forum: Forum;
@@ -37,7 +37,6 @@ export interface PostList {
   subPostList?: PostListSubPostList;
   signature?: Signature;
 }
-
 
 export interface PostListContent {
   type: number;

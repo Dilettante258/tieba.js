@@ -5,9 +5,9 @@ import {collatePost} from "../src/utils";
 
 describe("Post", () => {
   it("getPost", async () => {
-    let result = await getPost(9063205171, 1, false, true);
+    const result = await getPost(9063205171, 1, false, true);
     console.dir(result);
-    let temp = collatePost(result.postList);
+    const temp = collatePost(result.postList);
     // collatePost(result.postList).forEach(post => {
     //   console.log({
     //     id: post.id,
