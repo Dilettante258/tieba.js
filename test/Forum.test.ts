@@ -1,6 +1,7 @@
 import {describe, it} from "node:test";
 import {baseUrl, packRequest} from "../src/utils";
 import HTMLParser from 'node-html-parser';
+import {getForumMembers} from "../src/Forum";
 
 const mainlandDivision = ["河北", "山西", "辽宁", "吉林", "黑龙江", "江苏", "浙江", "安徽", "福建", "江西", "山东", "河南", "湖北", "湖南", "广东", "海南", "四川", "贵州", "云南", "陕西", "甘肃", "青海", "内蒙古", "广西", "西藏", "宁夏", "新疆", "北京", "天津", "上海", "重庆"]
 //ts-ignore
@@ -39,6 +40,10 @@ describe("Forum", () => {
         nickname: element.innerText
       }
     }))
+    it("getForumMembers", async () => {
+      const data = await getForumMembers('v', 1);
+      console.log(data)
+
   })
   // it("getThreadPid", async () => {
   //   const promises = Array.from({length: 10}, (_, i) => getThreadPid({

@@ -2,7 +2,6 @@
   "name": "tieba.js-devcontainer",
   "image": "mcr.microsoft.com/devcontainers/universal:2",
   "features": {
-    "ghcr.io/audacioustux/devcontainers/bun:1": {},
     "ghcr.io/devcontainers/features/node:1": {
       "version": "latest"
     }
