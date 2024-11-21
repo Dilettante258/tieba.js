@@ -169,7 +169,7 @@ export async function threadResDeserialize(buffer: BufferType) {
 	}
 }
 
-export async function GetUserByUidReqSerialize(uid: number) {
+export async function getUserByUidReqSerialize(uid: number) {
 	const root = pbjs
 		.loadSync(join(__dirname, "./proto/GetUserByUid/DataReq.proto"))
 		.resolveAll();
@@ -188,7 +188,7 @@ export async function GetUserByUidReqSerialize(uid: number) {
 	return Buffer.from(buffer);
 }
 
-export async function GetUserByUidResDeserialize(buffer: BufferType) {
+export async function getUserByUidResDeserialize(buffer: BufferType) {
 	const root = pbjs
 		.loadSync(join(__dirname, "./proto/GetUserByUid/DataRes.proto"))
 		.resolveAll();
@@ -200,3 +200,39 @@ export async function GetUserByUidResDeserialize(buffer: BufferType) {
 		return decoded.data.user;
 	}
 }
+
+
+export async function getProfileReqSerialize(uid: number, page?: number) {
+	const root = pbjs
+		.loadSync(join(__dirname, "./proto/Profile/DataReq.proto"))
+		.resolveAll();
+	const Proto = root.lookupType("ProfileReqIdl");
+	const payload = {
+		data: {
+			uid: uid.toString(),
+			need_post_count: 1,
+			pn: page || 1,
+			common: {
+				_clientType: 2,
+				_clientVersion: "12.64.1.1",
+			},
+		},
+	};
+	const message = Proto.create(payload);
+	const buffer = Proto.encode(message).finish();
+	return Buffer.from(buffer);
+}
+
+export async function getProfileResDeserialize(buffer: BufferType) {
+	const root = pbjs
+		.loadSync(join(__dirname, "./proto/Profile/DataRes.proto"))
+		.resolveAll();
+	const Proto = root.lookupType("ProfileResIdl");
+	const decoded = Proto.decode(Buffer.from(buffer)).toJSON();
+	if (decoded.error.errorno !== 0) {
+		console.error(`${decoded.error}`);
+	} else {
+		return decoded.data;
+	}
+}
+

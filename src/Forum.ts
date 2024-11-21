@@ -1,10 +1,10 @@
 import HTMLParser from "node-html-parser";
 import {
-  forumReqSerialize,
-  forumResDeserialize,
-  type threadReq,
-  threadReqSerialize,
-  threadResDeserialize,
+	forumReqSerialize,
+	forumResDeserialize,
+	type threadReq,
+	threadReqSerialize,
+	threadResDeserialize,
 } from "./ProtobufParser";
 import type {ForumThreadPage, ForumThreadRes} from "./types";
 import {baseUrl, postProtobuf, processThread} from "./utils";
@@ -29,6 +29,9 @@ export async function getThreadPid(
 	params: threadReq,
 ): Promise<{ page: ForumThreadPage; pidList: Array<string> }> {
 	const result = await threadPipeline(params);
+	if (result.threadList === undefined) {
+		return {page: result.page, pidList: []};
+	}
 	const pidList = result.threadList.map((item) => item.id);
 	return {
 		page: result.page,
@@ -86,11 +89,11 @@ export async function getForumMembers(forumName: string, page: number) {
     };
   });
   const page_data = {
-    all: doc.querySelector("span.tbui_total_page")?.innerText,
+		all: Number.parseInt(doc.querySelector("span.tbui_total_page")?.innerText.slice(1, -1) as string),
     now: page,
     membersNumber: doc.querySelector(
       "div.forum_info_section.member_wrap.clearfix.bawu-info > h1 > span.text",
-    )?.innerText,
+		)?.innerText.replace(' ', ''),
   };
   return {data, page_data};
 }

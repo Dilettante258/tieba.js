@@ -1,11 +1,10 @@
-import {GetUserByUidReqSerialize, GetUserByUidResDeserialize,} from "./ProtobufParser";
+import {getProfileResDeserialize, getUserByUidReqSerialize, getUserByUidResDeserialize,} from "./ProtobufParser";
 import {baseUrl, packRequest, postFormData, postProtobuf} from "./utils";
 
 export async function getInfo(username: string) {
 	const res = await fetch(baseUrl + `/i/sys/user_json?un=${username}&ie=utf-8`);
 	try {
-		const json = await res.json();
-		return json;
+		return await res.json();
 	} catch (e) {
 		console.error("User not found");
 		return "User not found";
@@ -23,14 +22,24 @@ export type UserInfoFromUid = {
 	tiebaUid: string;
 };
 
-export async function GetUserByUid(uid: number): Promise<UserInfoFromUid> {
-	const buffer = await GetUserByUidReqSerialize(uid);
+export async function getUserByUid(uid: number): Promise<UserInfoFromUid> {
+	const buffer = await getUserByUidReqSerialize(uid);
 	const responseData = await postProtobuf(
 		"/c/u/user/getUserByTiebaUid?cmd=309702",
 		buffer,
 	);
-	return await GetUserByUidResDeserialize(responseData);
+	return await getUserByUidResDeserialize(responseData);
 }
+
+export async function getProfile(uid: number): Promise<UserInfoFromUid> {
+	const buffer = await getUserByUidReqSerialize(uid);
+	const responseData = await postProtobuf(
+		"/c/u/user/profile?cmd=303012",
+		buffer,
+	);
+	return await getProfileResDeserialize(responseData);
+}
+
 
 export async function getFan(uid: number, page?: number | "needAll") {
 	const params = {

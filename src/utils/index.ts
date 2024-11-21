@@ -128,6 +128,9 @@ export async function processUserPosts(
 
 export function processContent(data: PostListContent[] | FirstPostContent[]) {
   let resultString = "";
+  if (data === undefined) {
+    return "";
+  }
   data.forEach((item) => {
     switch (item.type) {
       //[0, 9, 18, 27, 40]

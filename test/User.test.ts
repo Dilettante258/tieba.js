@@ -1,14 +1,21 @@
 import {describe, it} from "node:test";
-import {GetUserByUid} from "../src/User";
-import {GetUserByUidReqSerialize, GetUserByUidResDeserialize} from "../src/ProtobufParser";
-import {postProtobuf} from "../src/utils";
+import {getProfileReqSerialize, getProfileResDeserialize} from "../src/ProtobufParser";
+import {postProtobuf} from "../src";
+
 
 describe("User", () => {
-  it("GetUserByUid", async () => {
-    const buffer = await GetUserByUidReqSerialize(443304357);
-    const responseData = await postProtobuf('/c/u/user/getUserByTiebaUid?cmd=309702', buffer);
+  // it("getUserByUid", async () => {
+  //   const buffer = await GetUserByUidReqSerialize(443304357);
+  //   const responseData = await postProtobuf('/c/u/user/getUserByTiebaUid?cmd=309702', buffer);
+  //   console.log(responseData)
+  //   const data = await GetUserByUidResDeserialize(responseData)
+  //   console.log(data)
+  // });
+  it("getProfile", async () => {
+    const buffer = await getProfileReqSerialize(2669629059)
+    const responseData = await postProtobuf('/c/u/user/profile?cmd=303012', buffer);
     console.log(responseData)
-    const data = await GetUserByUidResDeserialize(responseData)
+    const data = await getProfileResDeserialize(responseData)
     console.log(data)
   });
 
