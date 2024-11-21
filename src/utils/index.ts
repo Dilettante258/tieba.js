@@ -109,7 +109,8 @@ export async function processUserPosts(
         forumName: forumName_,
         title: post.title.slice(3),
         threadId: post.threadId,
-        postId: content.postId,
+        postId: post.postId,
+        cid: content.postId,
         createTime: needPlainText
           ? timeFormat.format(new Date(Number(content.createTime) * 1000))
           : content.createTime,
@@ -119,7 +120,7 @@ export async function processUserPosts(
           : content.postContent.length === 1
             ? content.postContent[0].text
             : content.postContent.map((item) => item.text).join(""),
-        replyTo: isReply ? content.postContent[1].text : "",
+        replyTo: isReply ? content.postContent[1].text : undefined,
       });
     }
   }
