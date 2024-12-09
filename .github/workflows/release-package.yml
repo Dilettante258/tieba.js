@@ -1,4 +1,4 @@
-name: Publish Package to npmjs
+name: Publish Package
 on:
   release:
     types: [ published ]
@@ -16,7 +16,11 @@ jobs:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
+      - run: cp -r ./dist/proto ./src/proto
       - run: npm run build
-      - run: npm publish --provenance --access public
+      - name: Publish package in NPM
+        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish package in JSR
+        run: npx jsr publish
