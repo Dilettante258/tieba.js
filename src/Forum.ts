@@ -6,8 +6,8 @@ import {
 	threadReqSerialize,
 	threadResDeserialize,
 } from "./ProtobufParser";
-import type {ForumThreadPage, ForumThreadRes} from "./types";
-import {baseUrl, postProtobuf, processThread} from "./utils";
+import {ForumMemberRes, ForumThreadPage, ForumThreadRes} from "./types";
+import {baseUrl, fetchWithRetry, postProtobuf, processThread} from "./utils";
 
 async function threadPipeline(params: threadReq): Promise<ForumThreadRes> {
 	const buffer = await threadReqSerialize(params);
@@ -72,12 +72,29 @@ export async function getForumInfoByID(forumId: number) {
 	return await forumResDeserialize(res);
 }
 
-export async function getForumMembers(forumName: string, page: number) {
+
+export async function getForumID(forumName: string): Promise<number> {
+	const res = await fetch(
+		`https://tiebac.baidu.com/f/commit/share/fnameShareApi?fname=${forumName}&ie=utf-8`).then((response) => response.json());
+	if (!res) {
+		console.error("Error: 未查询到吧信息，吧ID：" + forumName);
+		return 0;
+	}
+	return res.data.fid as number;
+}
+
+export async function getForumMembers(forumName: string, page: number): Promise<ForumMemberRes> {
+	if (page > 500 || page < 1) {
+		throw new Error("超出合法页面范围，最大允许 500 页");
+	}
+
+
   const url = new URL("/bawu2/platform/listMemberInfo", baseUrl);
+	const fetchFunction = () => fetch(url).then((response) => response.arrayBuffer());
   url.searchParams.append("word", forumName);
-  url.searchParams.append("page", page.toString());
+	url.searchParams.append("pn", page.toString());
   url.searchParams.append("ie", "utf-8");
-  const res = await fetch(url).then((response) => response.arrayBuffer());
+	const res = await fetchWithRetry(fetchFunction);
   const decoder = new TextDecoder("gbk");
   const resText = decoder.decode(res);
   const doc = HTMLParser.parse(resText);
@@ -88,12 +105,17 @@ export async function getForumMembers(forumName: string, page: number) {
       nickname: element.innerText,
     };
   });
-  const page_data = {
+	const forumDataText = doc.querySelector("body > div.wrap1 > div > script")?.innerText as string;
+	const forumData = await JSON.parse(forumDataText.slice(43, forumDataText.indexOf(';PageData.user.balv')));
+	const pageNow = Number.parseInt(doc.querySelector("#container > div.tbui_pagination.tbui_pagination_left > ul > li.active > span")?.innerText as string);
+	const pageData = {
 		all: Number.parseInt(doc.querySelector("span.tbui_total_page")?.innerText.slice(1, -1) as string),
-    now: page,
-    membersNumber: doc.querySelector(
-      "div.forum_info_section.member_wrap.clearfix.bawu-info > h1 > span.text",
-		)?.innerText.replace(' ', ''),
+		now: pageNow,
+		membersNum: forumData.member_num,
+		forumId: forumData.forum_id,
+		forumName: forumData.forum_name,
   };
-  return {data, page_data};
+	return {data, pageData};
 }
+
+

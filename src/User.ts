@@ -1,7 +1,7 @@
 import {getProfileResDeserialize, getUserByUidReqSerialize, getUserByUidResDeserialize,} from "./ProtobufParser";
 import {baseUrl, packRequest, postFormData, postProtobuf} from "./utils";
 
-export async function getInfo(username: string) {
+export async function getUserInfo(username: string) {
 	const res = await fetch(baseUrl + `/i/sys/user_json?un=${username}&ie=utf-8`);
 	try {
 		return await res.json();
@@ -81,7 +81,7 @@ export async function getFollow(uid: number, page?: number | "needAll") {
 
 export async function getLikeForum(uid: number, page?: number | "needAll") {
 	const params = {
-		uid,
+		friend_uid: uid,
 		page_no: Number.isInteger(page) ? page : 1,
 		page_size: 400,
 	};

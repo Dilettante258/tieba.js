@@ -236,3 +236,34 @@ export async function getProfileResDeserialize(buffer: BufferType) {
 	}
 }
 
+export async function getForumDetailReqSerialize(forumId: number) {
+	const root = pbjs
+		.loadSync(join(__dirname, "./proto/GetForumDetail/DataReq.proto"))
+		.resolveAll();
+	const Proto = root.lookupType("GetForumDetailReqIdl");
+	const payload = {
+		data: {
+			forum_id: forumId,
+			common: {
+				_clientType: 2,
+				_clientVersion: "12.64.1.1",
+			},
+		},
+	};
+	const message = Proto.create(payload);
+	const buffer = Proto.encode(message).finish();
+	return Buffer.from(buffer);
+}
+
+export async function getForumDetailResDeserialize(buffer: BufferType) {
+	const root = pbjs
+		.loadSync(join(__dirname, "./proto/GetForumDetail/DataRes.proto"))
+		.resolveAll();
+	const Proto = root.lookupType("GetForumDetailResIdl");
+	const decoded = Proto.decode(Buffer.from(buffer)).toJSON();
+	if (decoded.error.errorno !== 0) {
+		console.error(`${decoded.error}`);
+	} else {
+		return decoded.data;
+	}
+}

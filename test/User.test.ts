@@ -1,7 +1,16 @@
-import {describe} from "node:test";
+import {describe, it} from "node:test";
+import {getLikeForum, getUserInfo} from "../src";
 
 
 describe("User", () => {
+  it("getUserInfo", async () => {
+    const uid = await getUserInfo('老葡秋');
+    console.log(uid)
+    const data = await getLikeForum(1923345098);
+    console.log(data)
+  });
+
+  // getLikeForum
   // it("getUserByUid", async () => {
   //   const buffer = await GetUserByUidReqSerialize(443304357);
   //   const responseData = await postProtobuf('/c/u/user/getUserByTiebaUid?cmd=309702', buffer);

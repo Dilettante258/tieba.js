@@ -29,40 +29,54 @@ if (process.env.BDUSS) {
   throw new Error("BDUSS环境变量未设置!");
 }
 
+export const fetchWithRetry = async (fetchFunction: Function, retries = 3, delay = 1000) => {
+  try {
+    return await fetchFunction();
+  } catch (error) {
+    if (retries > 0) {
+      console.error(`请求失败，剩余重试次数：${retries}`);
+      await new Promise(resolve => setTimeout(resolve, delay)); // 等待一段时间后重试
+      return fetchWithRetry(fetchFunction, retries - 1, delay);
+    } else {
+      throw new Error('请求失败，已达到最大重试次数');
+    }
+  }
+};
+
+
+
+
 export async function postFormData(url: string, data: any) {
-  const response = await fetch(baseUrl + url, {
+  const fetchFunction = () => fetch(baseUrl + url, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: data,
-  }).catch((error) => {
+  }).then(response => response.json());
+
+  return fetchWithRetry(fetchFunction).catch(error => {
     console.error("Fetch failed:", error);
+    throw error;
   });
-  if (response) {
-    return await response.json();
-  }
-  throw new Error("Fetch failed");
 }
 
 export async function postProtobuf(url: string, buffer: Buffer) {
   const blob = new Blob([buffer]);
   const data = new FormData();
   data.append("data", blob);
-  const response = await fetch(baseUrl + url, {
+  const fetchFunction = () => fetch(baseUrl + url, {
     method: "POST",
     headers: {
       x_bd_data_type: "protobuf",
     },
     body: data,
-  }).catch((error) => {
+  }).then(response => response.arrayBuffer()).then(buffer => Buffer.from(buffer));
+
+  return fetchWithRetry(fetchFunction).catch(error => {
     console.error("Fetch failed:", error);
+    throw error;
   });
-  if (response) {
-    const buffer = await response.arrayBuffer();
-    return Buffer.from(buffer);
-  }
-  throw new Error("Fetch failed");
 }
 
 export function packRequest(data: any) {
