@@ -1,5 +1,11 @@
-import {getProfileResDeserialize, getUserByUidReqSerialize, getUserByUidResDeserialize,} from "./ProtobufParser";
-import {baseUrl, packRequest, postFormData, postProtobuf} from "./utils";
+import {
+	getProfileReqSerialize,
+	getProfileResDeserialize,
+	getUserByUidReqSerialize,
+	getUserByUidResDeserialize,
+} from "./ProtobufParser";
+import {baseUrl, getData, packRequest, postFormData, postProtobuf} from "./utils";
+import {FanRes, FollowRes, LikeForum, UserPanel} from "./types/User";
 
 export async function getUserInfo(username: string) {
 	const res = await fetch(baseUrl + `/i/sys/user_json?un=${username}&ie=utf-8`);
@@ -31,8 +37,8 @@ export async function getUserByUid(uid: number): Promise<UserInfoFromUid> {
 	return await getUserByUidResDeserialize(responseData);
 }
 
-export async function getProfile(uid: number): Promise<UserInfoFromUid> {
-	const buffer = await getUserByUidReqSerialize(uid);
+export async function getProfile(id: number): Promise<UserInfoFromUid> {
+	const buffer = await getProfileReqSerialize(id);
 	const responseData = await postProtobuf(
 		"/c/u/user/profile?cmd=303012",
 		buffer,
@@ -40,10 +46,15 @@ export async function getProfile(uid: number): Promise<UserInfoFromUid> {
 	return await getProfileResDeserialize(responseData);
 }
 
+export async function getPanel(un: string): Promise<UserPanel> {
+	const data = await getData(`/home/get/panel?un=${un}`);
+	return data.data;
+}
 
-export async function getFan(uid: number, page?: number | "needAll") {
+
+export async function getFan(id: number, page?: number | "needAll"): Promise<FanRes> {
 	const params = {
-		uid,
+		uid: id,
 		page: Number.isInteger(page) ? page : 1,
 	};
 	const res = await postFormData("/c/u/fans/page", packRequest(params));
@@ -57,9 +68,9 @@ export async function getFan(uid: number, page?: number | "needAll") {
 	return res;
 }
 
-export async function getFollow(uid: number, page?: number | "needAll") {
+export async function getFollow(id: number, page?: number | "needAll"): Promise<FollowRes> {
 	const params = {
-		uid,
+		uid: id,
 		page: Number.isInteger(page) ? page : 1,
 	};
 	const res = await postFormData("/c/u/follow/followList", packRequest(params));
@@ -79,19 +90,17 @@ export async function getFollow(uid: number, page?: number | "needAll") {
 	return res;
 }
 
-export async function getLikeForum(uid: number, page?: number | "needAll") {
+export async function getLikeForum(id: number, page?: number | "needAll"): Promise<LikeForum[]> {
 	const params = {
-		friend_uid: uid,
+		friend_uid: id,
 		page_no: Number.isInteger(page) ? page : 1,
 		page_size: 400,
 	};
 	const res = await postFormData("/c/f/forum/like", packRequest(params));
-	if (!params.hasOwnProperty("raw")) {
-		if (res?.forum_list?.gconforum) {
-			return res?.forum_list["non-gconforum"]?.concat(
-				res?.forum_list?.gconforum,
-			);
-		}
-		return res?.forum_list ? res?.forum_list["non-gconforum"] : [];
+	if (res?.forum_list?.gconforum) {
+		return res?.forum_list["non-gconforum"]?.concat(
+			res?.forum_list?.gconforum,
+		);
 	}
+	return res?.forum_list ? res?.forum_list["non-gconforum"] : [];
 }

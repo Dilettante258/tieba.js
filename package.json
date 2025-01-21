@@ -5,14 +5,16 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "node --test --require ts-node/register ./test/**/*.test.ts",
+    "test": "node --test --require ts-node/register ./test/User.test.ts",
+    "test-all": "node --test --require ts-node/register ./test/**/*.test.ts",
+    "test-coverage": "node --test --experimental-test-coverage --require ts-node/register ./test/**/*.test.ts",
     "build": "tsc"
   },
   "keywords": [],
   "author": "Dilettante258",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Dilettante258/tieba.js.git"
+    "url": "git+https://github.com/Dilettante258/tieba.js.git"
   },
   "license": "ISC",
   "files": [

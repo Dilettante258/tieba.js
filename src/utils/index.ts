@@ -43,8 +43,13 @@ export const fetchWithRetry = async (fetchFunction: Function, retries = 3, delay
   }
 };
 
-
-
+export async function getData(url: string) {
+  const fetchFunction = () => fetch(baseUrl + url,).then(response => response.json());
+  return fetchWithRetry(fetchFunction).catch((error: Error) => {
+    console.error("Fetch failed:", error);
+    throw error;
+  });
+}
 
 export async function postFormData(url: string, data: any) {
   const fetchFunction = () => fetch(baseUrl + url, {
@@ -55,7 +60,7 @@ export async function postFormData(url: string, data: any) {
     body: data,
   }).then(response => response.json());
 
-  return fetchWithRetry(fetchFunction).catch(error => {
+  return fetchWithRetry(fetchFunction).catch((error: Error) => {
     console.error("Fetch failed:", error);
     throw error;
   });
@@ -73,7 +78,7 @@ export async function postProtobuf(url: string, buffer: Buffer) {
     body: data,
   }).then(response => response.arrayBuffer()).then(buffer => Buffer.from(buffer));
 
-  return fetchWithRetry(fetchFunction).catch(error => {
+  return fetchWithRetry(fetchFunction).catch((error: Error) => {
     console.error("Fetch failed:", error);
     throw error;
   });

@@ -1,33 +1,30 @@
 import {describe, it} from "node:test";
-import {getLikeForum, getUserInfo} from "../src";
+import {getFan, getLikeForum} from "../src";
 
 
 describe("User", () => {
-  it("getUserInfo", async () => {
-    const uid = await getUserInfo('老葡秋');
-    console.log(uid)
-    const data = await getLikeForum(1923345098);
-    console.log(data)
-  });
-
-  // getLikeForum
-  // it("getUserByUid", async () => {
-  //   const buffer = await GetUserByUidReqSerialize(443304357);
-  //   const responseData = await postProtobuf('/c/u/user/getUserByTiebaUid?cmd=309702', buffer);
-  //   console.log(responseData)
-  //   const data = await GetUserByUidResDeserialize(responseData)
+  // it("getUserInfo", async () => {
+  //   const uid = await getUserInfo('老葡秋');
+  //   console.log(uid)
+  //   const data = await getLikeForum(1923345098);
   //   console.log(data)
+  // });brtgb
+
+  // it("getUserByUid", async () => {
+  //   const data = await getUserByUid(443304357);
+  //   console.dir(data)
   // });
   // it("getProfile", async () => {
-  //   const buffer = await getProfileReqSerialize(2669629059)
-  //   const responseData = await postProtobuf('/c/u/user/profile?cmd=303012', buffer);
-  //   console.log(responseData)
-  //   const data = await getProfileResDeserialize(responseData)
-  //   console.log(data)
+  //   const data = await getProfile(3364447105);
+  //   console.dir(data)
   // });
+  // it("getPanel", async () => {
+  //   const data = await getPanel('Admire_02');
+  //   console.dir(data)
+  // });
+  it("getFan", async () => {
+    const data = await getLikeForum(5991323492);
+    console.dir(data)
+  });
 
-  // it("GetUserByUid", async () => {
-  //   let result = await GetUserByUid(443304357);
-  //   console.dir(result)
-  // });
 });
