@@ -4,8 +4,8 @@ export interface UserPanel {
   name_show: string;
   show_nickname: string;
   profession_manager_nick_name: string;
-  iconinfo: null;
-  new_iconinfo: NewIconinfo;
+  iconinfo: Iconinfo[] | null;
+  new_iconinfo: { [key: string]: any[] | NewIconinfoClass };
   bg_id: number;
   portrait: string;
   portrait_h: string;
@@ -17,19 +17,50 @@ export interface UserPanel {
   can_followed: number;
   is_block: number;
   is_private: number;
-  mParr_props: any[];
-  tbmall_month_icon: null;
+  mParr_props: MParrProps | [];
+  tbmall_month_icon: { [key: string]: number } | null;
   free_flag: null;
   marriage: any[];
-  vipInfo: any[];
+  vipInfo: VipInfo | [];
   tb_vip: boolean;
   followed_count: number;
 }
 
+export interface NewIconinfoClass {
+  slot_no: string;
+  slot_type: string;
+  icon: string;
+  value: string;
+  end_time: string;
+  name: string;
+  weight: number;
+  position: Position;
+  terminal: Terminal;
+  sprite: Sprite;
+  category_id: number;
+  type: number;
+  price: number;
+  is_force: number;
+  is_advanced: number;
+  title: string;
+  title_url: string;
+  intro: string;
+  intro_url: string;
+  forum_list: string;
+  pay_pic_pc: string;
+  pay_pic_pad: string;
+  level_1: Level;
+}
+
 export interface Honor {
-  manager: null;
+  manager: Manager;
   grade: { [key: string]: Grade };
   novice: number;
+}
+
+export interface Manager {
+  manager?: Grade;
+  assist?: Grade;
 }
 
 export interface Grade {
@@ -37,9 +68,21 @@ export interface Grade {
   forum_list: string[];
 }
 
-export interface NewIconinfo {
-  "1": The1;
+export interface Iconinfo {
+  icon: string;
+  name: string;
+  position: Position;
+  sprite: Sprite;
+  terminal: Terminal;
+  value: number;
+  weight: number;
 }
+
+export interface Sprite {
+  "1": string;
+}
+
+
 
 export interface The1 {
   slot_no: string;
@@ -79,6 +122,27 @@ export interface Level {
   level_info: LevelInfo;
 }
 
+export interface MParrProps {
+  achievement: Achievement;
+  all_level: { [key: string]: AllLevelItem };
+  level: Level;
+}
+
+export interface Achievement {
+  description: null;
+  end_time: string;
+  example_url: string;
+  props_id: string;
+  title: string;
+}
+
+export interface AllLevelItem {
+  end_time: string;
+  level: number;
+  pic_url: string;
+  score_limit: number;
+}
+
 export interface LevelInfo {
   title: string;
   title_url: string;
@@ -94,6 +158,18 @@ export interface Position {
   pb: number;
   home: number;
   card: number;
+}
+
+export interface VipInfo {
+  a_score: number;
+  e_time: string;
+  ext_score: string;
+  icon_url: string;
+  icon_url_new: string;
+  n_score: string;
+  s_time: string;
+  v_level: string;
+  v_status: string;
 }
 
 export interface Terminal {
