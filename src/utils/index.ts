@@ -11,7 +11,7 @@ import type {
   UserPost,
 } from "../types";
 
-export const baseUrl = "https://tiebac.baidu.com";
+export const baseUrl = "http://tiebac.baidu.com";
 export const timeFormat = Intl.DateTimeFormat("zh-CN", {
   timeStyle: "short",
   dateStyle: "short",
@@ -43,8 +43,8 @@ export const fetchWithRetry = async (fetchFunction: Function, retries = 3, delay
   }
 };
 
-export async function getData(url: string) {
-  const fetchFunction = () => fetch(baseUrl + url,).then(response => response.json());
+export async function getData(url: string, requestOptions: RequestInit = {}) {
+  const fetchFunction = () => fetch(baseUrl + url, requestOptions).then(response => response.json());
   return fetchWithRetry(fetchFunction).catch((error: Error) => {
     console.error("Fetch failed:", error);
     throw error;

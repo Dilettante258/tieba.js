@@ -5,7 +5,7 @@ import {
 	getUserByUidResDeserialize,
 } from "./ProtobufParser";
 import {baseUrl, getData, packRequest, postFormData, postProtobuf} from "./utils";
-import {FanRes, FollowRes, LikeForum, UserPanel} from "./types/User";
+import {FanRes, FollowRes, LikeForum, UserPanel} from "./types";
 
 export async function getUserInfo(username: string) {
 	const res = await fetch(baseUrl + `/i/sys/user_json?un=${username}&ie=utf-8`);
@@ -13,8 +13,24 @@ export async function getUserInfo(username: string) {
 		return await res.json();
 	} catch (e) {
 		console.error("User not found");
-		return "User not found";
+		return {error: "User not found"};
 	}
+}
+
+export async function getUnameFromId(uid: number): Promise<string> {
+	const myHeaders = new Headers();
+	myHeaders.append("Cookie", `BDUSS=${process.env.BDUSS}`);
+	const requestOptions: RequestInit = {
+		method: "GET",
+		headers: myHeaders,
+		redirect: "follow"
+	};
+
+	const res = await getData(`/im/pcmsg/query/getUserInfo?chatUid=${uid}`, requestOptions)
+	if (res.errno !== 0) {
+		console.error('BDUSS失效！')
+	}
+	return res.chatUser.uname;
 }
 
 export type UserInfoFromUid = {
