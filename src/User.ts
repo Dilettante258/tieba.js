@@ -5,7 +5,7 @@ import {
 	getUserByUidResDeserialize,
 } from "./ProtobufParser";
 import {baseUrl, getData, packRequest, postFormData, postProtobuf} from "./utils";
-import {FanRes, FollowRes, LikeForum, UserPanel, UserProfile} from "./types";
+import {CondenseProfile, FanRes, FollowRes, HiddenLikeForum, LikeForum, UserPanel, UserProfile} from "./types";
 
 export async function getUserInfo(username: string) {
 	const res = await fetch(baseUrl + `/i/sys/user_json?un=${username}&ie=utf-8`);
@@ -119,4 +119,43 @@ export async function getLikeForum(id: number, page?: number | "needAll"): Promi
 		);
 	}
 	return res?.forum_list ? res?.forum_list["non-gconforum"] : [];
+}
+
+export async function condenseProfile(id: number): Promise<CondenseProfile> {
+	const profile = await getProfile(id);
+	const uid = profile.user.tiebaUid;
+	const name = profile.user.name;
+	const panel = await getPanel(name);
+	return {
+		name: name,
+		nickname: profile.user.nameShow,
+		uid: uid,
+		portrait: profile.user.portrait,
+		fan: profile.user.fansNum,
+		follow: profile.user.concernNum,
+		sex: profile.user.sex,
+		group: profile.user.privSets.group,
+		godData: profile.user.newGodData.fieldName,
+		ipAddress: profile.user.ipAddress,
+		userGrowth: profile.user.userGrowth.levelId,
+		totalAgreeNum: profile.userAgreeInfo.totalAgreeNum,
+		tbAge: panel.tb_age,
+		postNum: panel.post_num,
+		tbVip: panel.tb_vip,
+		manager: panel.honor.manager,
+	}
+}
+
+// 隐藏关注时使用该函数！只能获取一部分
+export async function getHiddenLikeForum(id: number): Promise<HiddenLikeForum> {
+	const profile = await getProfile(id);
+	const name = profile.user.name;
+	const panel = await getPanel(name);
+	const temp1 = profile.user.likeForum.map((i) => i.forumName);
+	const temp2 = Object.entries(panel.honor.grade)
+		.map(([key, value]) => (value.forum_list)).flat();
+	return {
+		grade: panel.honor.grade,
+		plain: temp1.filter(item => !temp2.includes(item)),
+	}
 }

@@ -441,3 +441,28 @@ export interface PersonalState {
 export interface UserAgreeInfo {
   totalAgreeNum: string;
 }
+
+
+export interface CondenseProfile {
+  name: string;
+  nickname: string;
+  uid: string;
+  portrait: string;
+  fan: number;
+  follow: number;
+  sex: number;
+  group: number | undefined;
+  godData: string | undefined;
+  ipAddress: string;
+  userGrowth: number;
+  totalAgreeNum: string;
+  tbAge: string;
+  postNum: number;
+  tbVip: boolean;
+  manager: Manager;
+}
+
+export interface HiddenLikeForum {
+  grade: { [key: string]: Grade };
+  plain: Array<string>;
+}
