@@ -1,5 +1,5 @@
 import {describe, it} from "node:test";
-import {getUnameFromId} from "../src";
+import {getPanel, getProfile} from "../src";
 
 
 describe("User", () => {
@@ -14,22 +14,22 @@ describe("User", () => {
   //   const data = await getUserByUid(443304357);
   //   console.dir(data)
   // });
-  // it("getProfile", async () => {
-  //   const data = await getProfile(3364447105);
-  //   console.dir(data)
-  // });
-  // it("getPanel", async () => {
-  //   const data = await getPanel('Admire_02');
-  //   console.dir(data)
-  // });
+  it("getProfile", async () => {
+    const data = await getProfile(458523362);
+    console.dir(data)
+  });
+  it("getPanel", async () => {
+    const data = await getPanel('叫我老冰就好了');
+    console.dir(data)
+  });
   // it("getFan", async () => {
   //   const data = await getLikeForum(5991323492);
   //   console.dir(data)
   // });
-  it("getUnameFromId", async () => {
-    const data = await getUnameFromId(5991323492);
-    console.dir(data)
-  });
+  // it("getUnameFromId", async () => {
+  //   const data = await getUnameFromId(5991323492);
+  //   console.dir(data)
+  // });
 
 
 });

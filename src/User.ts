@@ -5,7 +5,7 @@ import {
 	getUserByUidResDeserialize,
 } from "./ProtobufParser";
 import {baseUrl, getData, packRequest, postFormData, postProtobuf} from "./utils";
-import {FanRes, FollowRes, LikeForum, UserPanel} from "./types";
+import {FanRes, FollowRes, LikeForum, UserPanel, UserProfile} from "./types";
 
 export async function getUserInfo(username: string) {
 	const res = await fetch(baseUrl + `/i/sys/user_json?un=${username}&ie=utf-8`);
@@ -53,7 +53,7 @@ export async function getUserByUid(uid: number): Promise<UserInfoFromUid> {
 	return await getUserByUidResDeserialize(responseData);
 }
 
-export async function getProfile(id: number): Promise<UserInfoFromUid> {
+export async function getProfile(id: number): Promise<UserProfile> {
 	const buffer = await getProfileReqSerialize(id);
 	const responseData = await postProtobuf(
 		"/c/u/user/profile?cmd=303012",

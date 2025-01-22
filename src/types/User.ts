@@ -1,3 +1,5 @@
+import {FirstPostContent} from "./Forum";
+
 export interface UserPanel {
   name: string;
   identity: number;
@@ -205,7 +207,7 @@ export interface RelativeUserList {
   name: string;
   portrait: string;
   follow_time: string;
-  follow_from: FollowFrom;
+  follow_from: string;
   name_show: string;
   live_status: string;
   live_id: string;
@@ -229,9 +231,6 @@ export interface BazhuGradeClass {
   level: string;
 }
 
-export enum FollowFrom {
-  a = "来自贴吧关注",
-}
 
 export interface GodInfo {
   apply_source: string;
@@ -260,7 +259,7 @@ export interface FollowRes {
 }
 
 export interface FollowList {
-  follow_from: FollowFrom;
+  follow_from: string;
   work_creator_info: WorkCreatorInfo;
   portrait: string;
   portraith: string;
@@ -308,6 +307,8 @@ export interface PrivSets {
   post?: number;
   live?: number;
   reply?: number;
+  friend?: number;
+  bazhu_show_inside?: number;
   bazhu_show_outside?: number;
 }
 
@@ -327,3 +328,116 @@ export interface LikeForum {
   slogan: string;
 }
 
+export interface UserProfile {
+  user: User;
+  antiStat: AntiStat;
+  postList: ProfilePostList[];
+  userAgreeInfo: UserAgreeInfo;
+}
+
+export interface AntiStat {
+  blockStat: number;
+  hideStat: number;
+  daysTofree: number;
+}
+
+export interface ProfilePostList {
+  forumId: string;
+  threadId: string;
+  postId: string;
+  createTime: number;
+  forumName: string;
+  title: string;
+  userName: string;
+  media?: Media[];
+  replyNum: number;
+  userId: string;
+  userPortrait: string;
+  threadType: string;
+  freqNum: number;
+  nameShow: string;
+  shareNum: number;
+  agree: Agree;
+  isShareThread: number;
+  firstPostContent: FirstPostContent[];
+}
+
+export interface Agree {
+  agreeNum: string;
+  hasAgree: number;
+  agreeType: number;
+  disagreeNum: string;
+  diffAgreeNum: string;
+}
+
+
+export interface Media {
+  type: number;
+  smallPic: string;
+  bigPic: string;
+  waterPic: string;
+  width: number;
+  height: number;
+  originPic: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  nameShow: string;
+  portrait: string;
+  iconinfo: Iconinfo[];
+  fansNum: number;
+  concernNum: number;
+  sex: number;
+  myLikeNum: number;
+  intro: string;
+  postNum: number;
+  tbAge: string;
+  privSets: PrivSets;
+  likeForum: LikeForumPair[];
+  vipInfo: VipInfo;
+  isFans: number;
+  newGodData: NewGodData;
+  isDefaultAvatar: number;
+  tiebaUid: string;
+  ipAddress: string;
+  virtualImageInfo: VirtualImageInfo;
+  userGrowth: UserGrowth;
+}
+
+export interface Iconinfo {
+  name: string;
+}
+
+export interface LikeForumPair {
+  forumName: string;
+  forumId: string;
+}
+
+export interface NewGodData {
+  status: number;
+  fieldId: number;
+  fieldName: string;
+}
+
+export interface UserGrowth {
+  levelId: number;
+}
+
+export interface VipInfo {
+  vStatus: number;
+  vLevel: number;
+}
+
+export interface VirtualImageInfo {
+  issetVirtualImage: number;
+  personalState: PersonalState;
+}
+
+export interface PersonalState {
+}
+
+export interface UserAgreeInfo {
+  totalAgreeNum: string;
+}
