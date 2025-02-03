@@ -1,5 +1,5 @@
 import {describe, it} from "node:test";
-import {condenseProfile, getHiddenLikeForum} from "../src";
+import {condenseProfile, getHiddenLikeForum, getProfile} from "../src";
 
 
 describe("User", () => {
@@ -14,10 +14,10 @@ describe("User", () => {
   //   const data = await getUserByUid(30861022);
   //   console.dir(data)
   // });
-  // it("getProfile", async () => {
-  //   const data = await getProfile(458523362);
-  //   console.dir(data)
-  // });
+  it("getProfile", async () => {
+    const data = await getProfile(458523362);
+    console.dir(data)
+  });
   // it("getPanel", async () => {
   //   const data = await getPanel('叫我老冰就好了');
   //   console.dir(data)

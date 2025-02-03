@@ -129,6 +129,7 @@ export async function condenseProfile(id: number): Promise<CondenseProfile> {
 	return {
 		name: name,
 		nickname: profile.user.nameShow,
+		id: profile.user.id,
 		uid: uid,
 		portrait: profile.user.portrait,
 		fan: profile.user.fansNum,
@@ -142,6 +143,11 @@ export async function condenseProfile(id: number): Promise<CondenseProfile> {
 		tbAge: panel.tb_age,
 		postNum: panel.post_num,
 		tbVip: panel.tb_vip,
+		vip: {
+			level: "v_level" in panel.vipInfo ? panel.vipInfo.v_level : "0",
+			status: "v_status" in panel.vipInfo ? panel.vipInfo.v_status : "0",
+			expireTime: "e_time" in panel.vipInfo ? Number(panel.vipInfo.e_time) : 0
+		},
 		manager: panel.honor.manager,
 	}
 }

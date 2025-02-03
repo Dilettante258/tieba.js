@@ -425,7 +425,7 @@ export interface UserGrowth {
   levelId: number;
 }
 
-export interface VipInfo {
+export interface SimpleVipInfo {
   vStatus: number;
   vLevel: number;
 }
@@ -446,6 +446,7 @@ export interface UserAgreeInfo {
 export interface CondenseProfile {
   name: string;
   nickname: string;
+  id: string;
   uid: string;
   portrait: string;
   fan: number;
@@ -459,6 +460,11 @@ export interface CondenseProfile {
   tbAge: string;
   postNum: number;
   tbVip: boolean;
+  vip: {
+    level: string;
+    status: string;
+    expireTime: number;
+  }
   manager: Manager;
 }
 
