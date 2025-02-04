@@ -3,9 +3,9 @@ import {
 	getProfileResDeserialize,
 	getUserByUidReqSerialize,
 	getUserByUidResDeserialize,
-} from "./ProtobufParser";
-import {baseUrl, getData, packRequest, postFormData, postProtobuf} from "./utils";
-import {CondenseProfile, FanRes, FollowRes, HiddenLikeForum, LikeForum, UserPanel, UserProfile} from "./types";
+} from "./ProtobufParser.js";
+import {baseUrl, getData, packRequest, postFormData, postProtobuf} from "./utils/index.js";
+import {CondenseProfile, FanRes, FollowRes, HiddenLikeForum, LikeForum, UserPanel, UserProfile} from "./types/User.js";
 
 export async function getUserInfo(username: string) {
 	const res = await fetch(baseUrl + `/i/sys/user_json?un=${username}&ie=utf-8`);
@@ -159,7 +159,7 @@ export async function getHiddenLikeForum(id: number): Promise<HiddenLikeForum> {
 	const panel = await getPanel(name);
 	const temp1 = profile.user.likeForum.map((i) => i.forumName);
 	const temp2 = Object.entries(panel.honor.grade)
-		.map(([key, value]) => (value.forum_list)).flat();
+		.map(([_, value]) => (value.forum_list)).flat();
 	return {
 		grade: panel.honor.grade,
 		plain: temp1.filter(item => !temp2.includes(item)),

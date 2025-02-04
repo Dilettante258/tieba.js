@@ -1,6 +1,6 @@
-import {type postReq, postReqSerialize, postResDeserialize,} from "./ProtobufParser";
-import type {PostList, PostRes, UserList} from "./types";
-import {postProtobuf} from "./utils";
+import {type postReq, postReqSerialize, postResDeserialize,} from "./ProtobufParser.js";
+import type {PostList, PostRes, UserList} from "./types/Post.js";
+import {postProtobuf} from "./utils/index.js";
 
 const maxPage = 600;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

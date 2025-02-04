@@ -1,6 +1,6 @@
-import {userPostReqSerialize, userPostResDeserialize} from "./ProtobufParser";
-import type {RawUserPost, UserPost} from "./types";
-import {postProtobuf, processUserPosts} from "./utils";
+import {userPostReqSerialize, userPostResDeserialize} from "./ProtobufParser.js";
+import type {RawUserPost, UserPost} from "./types/UserPost.js";
+import {postProtobuf, processUserPosts} from "./utils/index.js";
 
 const UPAPI = "/c/u/feed/userpost?cmd=303002";
 

@@ -1,6 +1,8 @@
-export * from "./Forum";
-export * from "./User";
-export * from "./Post";
-export * from "./UserPost";
-export * from "./utils";
-export * from "./types";
+export * from "./Forum.js";
+export * from "./User.js";
+export * from "./Post.js";
+export * from "./UserPost.js";
+export * from "./utils/index.js";
+export * from "./types/index.js";
+
+

@@ -4,11 +4,14 @@
   "description": "贴吧数据解析",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "test": "node --test --require ts-node/register ./test/User.test.ts",
     "test-all": "node --test --require ts-node/register ./test/**/*.test.ts",
     "test-coverage": "node --test --experimental-test-coverage --require ts-node/register ./test/**/*.test.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "build-proto": "build-proto.sh",
+    "insert-info": "insert-package-info.sh"
   },
   "keywords": [],
   "author": "Dilettante258",
@@ -22,11 +25,20 @@
   ],
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@rollup/plugin-commonjs": "^28.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "protobufjs": "^7.4.0",
+    "rollup": "^4.34.2",
+    "rollup-plugin-progress": "^1.1.2",
     "ts-node": "^10.9.2",
+    "tslib": "^2.8.1",
     "typescript": "^5.6.2"
   },
   "dependencies": {
-    "node-html-parser": "^6.1.13",
-    "protobufjs": "^7.4.0"
+    "@types/long": "^5.0.0",
+    "@types/node": "^22.13.1",
+    "long": "^5.2.4",
+    "node-html-parser": "^6.1.13"
   }
 }

@@ -1,6 +1,5 @@
 import {Buffer} from "buffer";
 import {createHash} from "crypto";
-import {getForumName} from "../Forum";
 import type {
   FirstPostContent,
   OutputPostList,
@@ -9,7 +8,8 @@ import type {
   RawUserPost,
   Thread,
   UserPost,
-} from "../types";
+} from "../types/index.js";
+import {forumReqSerialize, forumResDeserialize} from "../ProtobufParser.js";
 
 export const baseUrl = "http://tiebac.baidu.com";
 export const timeFormat = Intl.DateTimeFormat("zh-CN", {
@@ -253,4 +253,24 @@ export function processThread(thread: Thread) {
   delete temp.author;
   delete temp.threadType;
   return temp;
+}
+
+const forumNameCache = {};
+
+export async function getForumName(forumId: number) {
+  if (forumNameCache[forumId]) {
+    return forumNameCache[forumId];
+  }
+  const buffer = await forumReqSerialize(forumId);
+  const res = await postProtobuf(
+    "/c/f/forum/getforumdetail?cmd=303021",
+    buffer,
+  );
+  if (res.byteLength < 200) {
+    console.error("Error: 未找到吧！");
+    return "error";
+  }
+  const forumName = await forumResDeserialize(res);
+  forumNameCache[forumId] = forumName;
+  return forumName;
 }

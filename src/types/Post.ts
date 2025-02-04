@@ -1,4 +1,4 @@
-import type {Agree} from "./common";
+import type {Agree} from "./common.js";
 
 export interface PostRes {
   forum: Forum;
