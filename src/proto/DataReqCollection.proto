@@ -1,0 +1,6 @@
+import "GetForumDetail/DataReq.proto";
+import "GetPosts/DataReq.proto";
+import "GetThreads/DataReq.proto";
+import "GetUserByUid/DataReq.proto";
+import "Profile/DataReq.proto";
+import "UserPost/DataReq.proto";
