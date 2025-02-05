@@ -9,7 +9,7 @@
     "test": "node --test --require ts-node/register ./test/User.test.ts",
     "test-all": "node --test --require ts-node/register ./test/**/*.test.ts",
     "test-coverage": "node --test --experimental-test-coverage --require ts-node/register ./test/**/*.test.ts",
-    "build": "tsc",
+    "build": "rollup -c",
     "build-proto": "build-proto.sh",
     "insert-info": "insert-package-info.sh"
   },

@@ -2,7 +2,15 @@ import {Buffer} from "buffer";
 import {tbclient as encode} from "./pb-gen/encode.js"
 import {tbclient as decode} from "./pb-gen/decode.js"
 
-export async function userPostReqSerialize(uid: number, pn: number) {
+type Concrete<Type> = {
+	[Prop in keyof Type]-?: NonNullable<Type[Prop]>;
+};
+
+type DeepConcrete<Type> = {
+	[Prop in keyof Type]-?: Type[Prop] extends object ? DeepConcrete<NonNullable<Type[Prop]>> : NonNullable<Type[Prop]>;
+};
+
+export function userPostReqSerialize(uid: number, pn: number) {
 	const Proto = encode.UserPostReqIdl;
 	const payload = {
 		data: {
@@ -19,7 +27,7 @@ export async function userPostReqSerialize(uid: number, pn: number) {
 	return Buffer.from(buffer);
 }
 
-export async function userPostResDeserialize(buffer: Uint8Array) {
+export function userPostResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.UserPostResIdl;
 	const decoded = Proto.decode(Buffer.from(buffer)).toJSON();
 	if (decoded.error.errorno !== 0) {
@@ -29,7 +37,7 @@ export async function userPostResDeserialize(buffer: Uint8Array) {
 	}
 }
 
-export async function forumReqSerialize(forumId: number) {
+export function forumReqSerialize(forumId: number) {
 	const Proto = encode.GetForumDetailReqIdl;
 	const payload = {
 		data: {
@@ -44,13 +52,13 @@ export async function forumReqSerialize(forumId: number) {
 	return Buffer.from(buffer);
 }
 
-export async function forumResDeserialize(buffer: Uint8Array) {
+export function forumResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.GetForumDetailResIdl;
-	const decoded = Proto.decode(buffer).toJSON();
-	if (decoded.error.errorno !== 0) {
+	const decoded: decode.IGetForumDetailResIdl = Proto.decode(buffer).toJSON();
+	if (decoded?.error?.errorno !== 0) {
 		console.error(`${decoded.error}`);
 	} else {
-		const data = decoded.data.forumInfo;
+		const data = decoded?.data?.forumInfo as Concrete<decode.GetForumDetailResIdl.DataRes.IRecommendForumInfo>;
 		return data.forumName;
 	}
 }
@@ -66,7 +74,7 @@ export type postReq = {
 	CommentsSortByTime?: boolean;
 };
 
-export async function postReqSerialize(params: postReq) {
+export function postReqSerialize(params: postReq) {
 	const Proto = encode.PbPageReqIdl;
 	const payload: any = {
 		data: {
@@ -97,7 +105,7 @@ export async function postReqSerialize(params: postReq) {
 export function postResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.PbPageResIdl;
 	const decoded = Proto.decode(buffer).toJSON();
-	if (decoded.error.errorno !== 0) {
+	if (decoded?.error?.errorno !== 0) {
 		console.error(`${decoded.error}`);
 	} else {
 		return decoded.data;
@@ -112,7 +120,7 @@ export type threadReq = {
 	OnlyGood?: boolean;
 };
 
-export async function threadReqSerialize(params: threadReq) {
+export function threadReqSerialize(params: threadReq) {
 	const Proto = encode.FrsPageReqIdl;
 	const payload = {
 		data: {
@@ -135,7 +143,7 @@ export async function threadReqSerialize(params: threadReq) {
 	return Buffer.from(buffer);
 }
 
-export async function threadResDeserialize(buffer: Uint8Array) {
+export function threadResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.FrsPageResIdl;
 	const decoded = Proto.decode(Buffer.from(buffer)).toJSON();
 	if (decoded.error.errorno !== 0) {
@@ -145,7 +153,7 @@ export async function threadResDeserialize(buffer: Uint8Array) {
 	}
 }
 
-export async function getUserByUidReqSerialize(uid: number) {
+export function getUserByUidReqSerialize(uid: number) {
 	const Proto = encode.GetUserByUidReqIdl;
 	const payload = {
 		data: {
@@ -161,7 +169,7 @@ export async function getUserByUidReqSerialize(uid: number) {
 	return Buffer.from(buffer);
 }
 
-export async function getUserByUidResDeserialize(buffer: Uint8Array) {
+export function getUserByUidResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.GetUserByUidResIdl;
 	const decoded = Proto.decode(Buffer.from(buffer)).toJSON();
 	if (decoded.error.errorno !== 0) {
@@ -171,7 +179,7 @@ export async function getUserByUidResDeserialize(buffer: Uint8Array) {
 	}
 }
 
-export async function getProfileReqSerialize(uid: number, page?: number) {
+export function getProfileReqSerialize(uid: number, page?: number) {
 	const Proto = encode.ProfileReqIdl;
 	const payload = {
 		data: {
@@ -189,7 +197,7 @@ export async function getProfileReqSerialize(uid: number, page?: number) {
 	return Buffer.from(buffer);
 }
 
-export async function getProfileResDeserialize(buffer: Uint8Array) {
+export function getProfileResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.ProfileResIdl;
 	const decoded = Proto.decode(Buffer.from(buffer)).toJSON();
 	if (decoded.error.errorno !== 0) {

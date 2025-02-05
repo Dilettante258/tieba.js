@@ -45,7 +45,7 @@ export type UserInfoFromUid = {
 };
 
 export async function getUserByUid(uid: number): Promise<UserInfoFromUid> {
-	const buffer = await getUserByUidReqSerialize(uid);
+	const buffer = getUserByUidReqSerialize(uid);
 	const responseData = await postProtobuf(
 		"/c/u/user/getUserByTiebaUid?cmd=309702",
 		buffer,
@@ -54,7 +54,7 @@ export async function getUserByUid(uid: number): Promise<UserInfoFromUid> {
 }
 
 export async function getProfile(id: number): Promise<UserProfile> {
-	const buffer = await getProfileReqSerialize(id);
+	const buffer = getProfileReqSerialize(id);
 	const responseData = await postProtobuf(
 		"/c/u/user/profile?cmd=303012",
 		buffer,

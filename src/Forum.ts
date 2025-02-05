@@ -10,7 +10,7 @@ import {ForumMemberRes, ForumThreadPage, ForumThreadRes} from "./types/Forum.js"
 import {baseUrl, fetchWithRetry, postProtobuf, processThread} from "./utils/index.js";
 
 async function threadPipeline(params: threadReq): Promise<ForumThreadRes> {
-	const buffer = await threadReqSerialize(params);
+	const buffer = threadReqSerialize(params);
 	const responseData = await postProtobuf("/c/f/frs/page?cmd=303002", buffer);
 	return threadResDeserialize(responseData);
 }
@@ -40,7 +40,7 @@ export async function getThreadPid(
 }
 
 export async function getForumInfoByID(forumId: number) {
-	const buffer = await forumReqSerialize(forumId);
+	const buffer = forumReqSerialize(forumId);
 	const res = await postProtobuf(
 		"/c/f/forum/getforumdetail?cmd=303021",
 		buffer,
@@ -49,7 +49,7 @@ export async function getForumInfoByID(forumId: number) {
 		console.error("Error: 未查询到吧信息，吧ID：" + forumId);
 		return "!!!Error!!!";
 	}
-	return await forumResDeserialize(res);
+	return forumResDeserialize(res);
 }
 
 

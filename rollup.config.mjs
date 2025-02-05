@@ -8,7 +8,7 @@ export default defineConfig({
   treeshake: {
     moduleSideEffects: false,
   },
-  external: ['node-html-parser', 'buffer', 'crypto', 'protobufjs'],
+  external: ['node-html-parser', 'buffer', 'crypto', 'protobufjs', 'long', '@protobufjs'],
   input: 'src/index.ts',
   output: {
     dir: 'dist',

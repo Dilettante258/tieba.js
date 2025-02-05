@@ -77,7 +77,6 @@ export async function postProtobuf(url: string, buffer: Buffer) {
     },
     body: data,
   }).then(response => response.arrayBuffer()).then(buffer => Buffer.from(buffer));
-
   return fetchWithRetry(fetchFunction).catch((error: Error) => {
     console.error("Fetch failed:", error);
     throw error;
@@ -261,7 +260,7 @@ export async function getForumName(forumId: number) {
   if (forumNameCache[forumId]) {
     return forumNameCache[forumId];
   }
-  const buffer = await forumReqSerialize(forumId);
+  const buffer = forumReqSerialize(forumId);
   const res = await postProtobuf(
     "/c/f/forum/getforumdetail?cmd=303021",
     buffer,
@@ -270,7 +269,7 @@ export async function getForumName(forumId: number) {
     console.error("Error: 未找到吧！");
     return "error";
   }
-  const forumName = await forumResDeserialize(res);
+  const forumName = forumResDeserialize(res);
   forumNameCache[forumId] = forumName;
   return forumName;
 }

@@ -6,7 +6,7 @@ const maxPage = 600;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function getPostPipeline(params: postReq) {
-	const buffer = await postReqSerialize(params);
+	const buffer = postReqSerialize(params);
 	const responseData = await postProtobuf("/c/f/pb/page?cmd=303002", buffer);
 	return postResDeserialize(responseData);
 }
