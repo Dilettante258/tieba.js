@@ -57,7 +57,6 @@ export type UserInfoFromUid = {
 	portrait: string;
 	intro: string;
 	tbAge: string;
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	newGodData: any;
 	tiebaUid: string;
 };

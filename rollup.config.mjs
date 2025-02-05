@@ -7,6 +7,7 @@ import progress from "rollup-plugin-progress";
 export default defineConfig({
 	treeshake: {
 		moduleSideEffects: false,
+		annotations: false,
 	},
 	external: [
 		"node-html-parser",
