@@ -1,6 +1,10 @@
-import {type postReq, postReqSerialize, postResDeserialize,} from "./ProtobufParser.js";
-import type {PostList, PostRes, UserList} from "./types/Post.js";
-import {postProtobuf} from "./utils/index.js";
+import {
+	type postReq,
+	postReqSerialize,
+	postResDeserialize,
+} from "./ProtobufParser.js";
+import type { PostList, PostRes, UserList } from "./types/Post.js";
+import { postProtobuf } from "./utils/index.js";
 
 const maxPage = 600;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -45,18 +49,18 @@ export async function getPost(
 	const func = async (pg: number) => {
 		if (onlyThreadAuthor === undefined) {
 			console.log("debug");
-			return await getPostPipeline({tid, page: pg});
-		} else if (withComment === false) {
-			return await getPostPipeline({tid, page: pg, onlyThreadAuthor});
-		} else {
-			return await getPostPipeline({
-				tid,
-				page: pg,
-				withComment,
-				...(commentParams || {}),
-				onlyThreadAuthor,
-			});
+			return await getPostPipeline({ tid, page: pg });
 		}
+		if (withComment === false) {
+			return await getPostPipeline({ tid, page: pg, onlyThreadAuthor });
+		}
+		return await getPostPipeline({
+			tid,
+			page: pg,
+			withComment,
+			...(commentParams || {}),
+			onlyThreadAuthor,
+		});
 	};
 	if (page === "ALL") {
 		const page1 = await func(1);
@@ -94,8 +98,7 @@ export async function getPost(
 		page1.postList.push(...allPosts);
 		page1.userList.push(...allUsers);
 		return page1;
-	} else {
-		func(page).then(console.log);
-		return await func(page);
 	}
+	func(page).then(console.log);
+	return await func(page);
 }

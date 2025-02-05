@@ -4,5 +4,3 @@ export * from "./Post.js";
 export * from "./UserPost.js";
 export * from "./utils/index.js";
 export * from "./types/index.js";
-
-

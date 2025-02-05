@@ -1,13 +1,15 @@
-import {Buffer} from "buffer";
-import {tbclient as encode} from "./pb-gen/encode.js"
-import {tbclient as decode} from "./pb-gen/decode.js"
+import { Buffer } from "node:buffer";
+import { tbclient as decode } from "./pb-gen/decode.js";
+import { tbclient as encode } from "./pb-gen/encode.js";
 
 type Concrete<Type> = {
 	[Prop in keyof Type]-?: NonNullable<Type[Prop]>;
 };
 
 type DeepConcrete<Type> = {
-	[Prop in keyof Type]-?: Type[Prop] extends object ? DeepConcrete<NonNullable<Type[Prop]>> : NonNullable<Type[Prop]>;
+	[Prop in keyof Type]-?: Type[Prop] extends object
+		? DeepConcrete<NonNullable<Type[Prop]>>
+		: NonNullable<Type[Prop]>;
 };
 
 export function userPostReqSerialize(uid: number, pn: number) {
@@ -58,7 +60,8 @@ export function forumResDeserialize(buffer: Uint8Array) {
 	if (decoded?.error?.errorno !== 0) {
 		console.error(`${decoded.error}`);
 	} else {
-		const data = decoded?.data?.forumInfo as Concrete<decode.GetForumDetailResIdl.DataRes.IRecommendForumInfo>;
+		const data = decoded?.data
+			?.forumInfo as Concrete<decode.GetForumDetailResIdl.DataRes.IRecommendForumInfo>;
 		return data.forumName;
 	}
 }
@@ -76,14 +79,14 @@ export type postReq = {
 
 export function postReqSerialize(params: postReq) {
 	const Proto = encode.PbPageReqIdl;
-	const payload: any = {
+	const payload: DeepConcrete<encode.IPbPageReqIdl> = {
 		data: {
-			kz: params["tid"],
-			pn: params["page"] || 1,
-			rn: params["rn"] || 30, //最大30
+			kz: params.tid,
+			pn: params.page || 1,
+			rn: params.rn || 30, //最大30
 			// 1 时间倒序 2 热门排序 3及以上 时间正序
-			r: params["sort"] || 3,
-			lz: params["onlyThreadAuthor"] || false,
+			r: params.sort || 3,
+			lz: Number(params.onlyThreadAuthor || false),
 			common: {
 				_clientType: 2,
 				_clientVersion: "12.64.1.1",
@@ -91,10 +94,11 @@ export function postReqSerialize(params: postReq) {
 		},
 	};
 	if (params.withComment) {
+		// @ts-ignore
 		payload.data.common.BDUSS = process.env.BDUSS;
-		payload.data.withFloor = true;
-		payload.data.floorSortType = !params["commentsSortByTime"];
-		payload.data.floorRn = params["commentRn"] || "4";
+		payload.data.withFloor = Number(true);
+		payload.data.floorSortType = Number(!params.CommentsSortByTime);
+		payload.data.floorRn = Number(params.commentRn || "4");
 	}
 
 	const message = Proto.create(payload);

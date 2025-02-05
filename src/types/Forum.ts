@@ -1,4 +1,4 @@
-import type {Agree} from "./common.js";
+import type { Agree } from "./common.js";
 
 export interface ForumThreadRes {
 	forum: Forum;
@@ -20,6 +20,7 @@ interface Forum {
 	managers: Manager[];
 }
 
+// biome-ignore lint/complexity/noBannedTypes: 待解决
 type Manager = {};
 
 export interface ForumThreadPage {
@@ -118,7 +119,6 @@ interface ForumRule {
 	hasForumRule: number;
 }
 
-
 export interface ForumMemberRes {
 	data: ForumMember[];
 	pageData: ForumMemberPageData;
@@ -134,6 +134,6 @@ export interface ForumMemberPageData {
 	all: number;
 	now: number;
 	membersNum: number;
-	forumId: number,
-	forumName: string,
+	forumId: number;
+	forumName: string;
 }

@@ -4,16 +4,30 @@ import {
 	getUserByUidReqSerialize,
 	getUserByUidResDeserialize,
 } from "./ProtobufParser.js";
-import {baseUrl, getData, packRequest, postFormData, postProtobuf} from "./utils/index.js";
-import {CondenseProfile, FanRes, FollowRes, HiddenLikeForum, LikeForum, UserPanel, UserProfile} from "./types/User.js";
+import type {
+	CondenseProfile,
+	FanRes,
+	FollowRes,
+	HiddenLikeForum,
+	LikeForum,
+	UserPanel,
+	UserProfile,
+} from "./types/User.js";
+import {
+	baseUrl,
+	getData,
+	packRequest,
+	postFormData,
+	postProtobuf,
+} from "./utils/index.js";
 
 export async function getUserInfo(username: string) {
-	const res = await fetch(baseUrl + `/i/sys/user_json?un=${username}&ie=utf-8`);
+	const res = await fetch(`${baseUrl}/i/sys/user_json?un=${username}&ie=utf-8`);
 	try {
 		return await res.json();
 	} catch (e) {
 		console.error("User not found");
-		return {error: "User not found"};
+		return { error: "User not found" };
 	}
 }
 
@@ -23,12 +37,15 @@ export async function getUnameFromId(uid: number): Promise<string> {
 	const requestOptions: RequestInit = {
 		method: "GET",
 		headers: myHeaders,
-		redirect: "follow"
+		redirect: "follow",
 	};
 
-	const res = await getData(`/im/pcmsg/query/getUserInfo?chatUid=${uid}`, requestOptions)
+	const res = await getData(
+		`/im/pcmsg/query/getUserInfo?chatUid=${uid}`,
+		requestOptions,
+	);
 	if (res.errno !== 0) {
-		console.error('BDUSS失效！')
+		console.error("BDUSS失效！");
 	}
 	return res.chatUser.uname;
 }
@@ -40,6 +57,7 @@ export type UserInfoFromUid = {
 	portrait: string;
 	intro: string;
 	tbAge: string;
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	newGodData: any;
 	tiebaUid: string;
 };
@@ -67,8 +85,10 @@ export async function getPanel(un: string): Promise<UserPanel> {
 	return data.data;
 }
 
-
-export async function getFan(id: number, page?: number | "needAll"): Promise<FanRes> {
+export async function getFan(
+	id: number,
+	page?: number | "needAll",
+): Promise<FanRes> {
 	const params = {
 		uid: id,
 		page: Number.isInteger(page) ? page : 1,
@@ -84,7 +104,10 @@ export async function getFan(id: number, page?: number | "needAll"): Promise<Fan
 	return res;
 }
 
-export async function getFollow(id: number, page?: number | "needAll"): Promise<FollowRes> {
+export async function getFollow(
+	id: number,
+	page?: number | "needAll",
+): Promise<FollowRes> {
 	const params = {
 		uid: id,
 		page: Number.isInteger(page) ? page : 1,
@@ -99,6 +122,7 @@ export async function getFollow(id: number, page?: number | "needAll"): Promise<
 			);
 		}
 		const results = await Promise.all(promises);
+		// biome-ignore lint/complexity/noForEach: <explanation>
 		results.forEach((result) => {
 			res.follow_list.push(...result.follow_list);
 		});
@@ -106,7 +130,10 @@ export async function getFollow(id: number, page?: number | "needAll"): Promise<
 	return res;
 }
 
-export async function getLikeForum(id: number, page?: number | "needAll"): Promise<LikeForum[]> {
+export async function getLikeForum(
+	id: number,
+	page?: number | "needAll",
+): Promise<LikeForum[]> {
 	const params = {
 		friend_uid: id,
 		page_no: Number.isInteger(page) ? page : 1,
@@ -114,9 +141,7 @@ export async function getLikeForum(id: number, page?: number | "needAll"): Promi
 	};
 	const res = await postFormData("/c/f/forum/like", packRequest(params));
 	if (res?.forum_list?.gconforum) {
-		return res?.forum_list["non-gconforum"]?.concat(
-			res?.forum_list?.gconforum,
-		);
+		return res?.forum_list["non-gconforum"]?.concat(res?.forum_list?.gconforum);
 	}
 	return res?.forum_list ? res?.forum_list["non-gconforum"] : [];
 }
@@ -146,10 +171,10 @@ export async function condenseProfile(id: number): Promise<CondenseProfile> {
 		vip: {
 			level: "v_level" in panel.vipInfo ? panel.vipInfo.v_level : "0",
 			status: "v_status" in panel.vipInfo ? panel.vipInfo.v_status : "0",
-			expireTime: "e_time" in panel.vipInfo ? Number(panel.vipInfo.e_time) : 0
+			expireTime: "e_time" in panel.vipInfo ? Number(panel.vipInfo.e_time) : 0,
 		},
 		manager: panel.honor.manager,
-	}
+	};
 }
 
 // 隐藏关注时使用该函数！只能获取一部分
@@ -158,10 +183,11 @@ export async function getHiddenLikeForum(id: number): Promise<HiddenLikeForum> {
 	const name = profile.user.name;
 	const panel = await getPanel(name);
 	const temp1 = profile.user.likeForum.map((i) => i.forumName);
-	const temp2 = Object.entries(panel.honor.grade)
-		.map(([_, value]) => (value.forum_list)).flat();
+	const temp2 = Object.entries(panel.honor.grade).flatMap(
+		([_, value]) => value.forum_list,
+	);
 	return {
 		grade: panel.honor.grade,
-		plain: temp1.filter(item => !temp2.includes(item)),
-	}
+		plain: temp1.filter((item) => !temp2.includes(item)),
+	};
 }
