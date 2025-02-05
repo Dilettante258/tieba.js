@@ -10,30 +10,25 @@
 		"test-all": "node --test --require ts-node/register ./test/**/*.test.ts",
 		"test-coverage": "node --test --experimental-test-coverage --require ts-node/register ./test/**/*.test.ts",
 		"build": "rollup -c",
-		"insert-info": "insert-package-info.sh",
-		"pbjs-codegen": "pbjs-codegen.sh"
+		"insert-info": "scripts/insert-package-info.sh",
+		"pbjs-codegen": "scripts/pbjs-codegen.sh",
+		"prepare": "chmod +x ./scripts/*.sh && ./scripts/insert-package-info.sh && ./scripts/pbjs-codegen.sh"
 	},
-	"keywords": [
-		"tieba",
-		"protobuf",
-		"node.js",
-		"baidu"
-	],
+	"keywords": ["tieba", "protobuf", "node.js", "baidu"],
 	"author": "Dilettante258",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/Dilettante258/tieba.js.git"
 	},
 	"license": "ISC",
-	"files": [
-		"dist"
-	],
+	"files": ["dist"],
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@rollup/plugin-commonjs": "^28.0.2",
 		"@rollup/plugin-node-resolve": "^16.0.0",
 		"@rollup/plugin-typescript": "^12.1.2",
 		"protobufjs": "^7.4.0",
+		"protobufjs-cli": "^1.1.3",
 		"rollup": "^4.34.2",
 		"rollup-plugin-progress": "^1.1.2",
 		"ts-node": "^10.9.2",
