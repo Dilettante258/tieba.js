@@ -1,6 +1,6 @@
 {
 	"name": "tieba.js",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "一个基于JavaScript实现的百度贴吧API调用库。",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -14,14 +14,21 @@
 		"pbjs-codegen": "scripts\\pbjs-codegen.sh",
 		"pre-build": "chmod +x ./scripts/*.sh && ./scripts/insert-package-info.sh && ./scripts/pbjs-codegen.sh"
 	},
-	"keywords": ["tieba", "protobuf", "node.js", "baidu"],
+	"keywords": [
+		"tieba",
+		"protobuf",
+		"node.js",
+		"baidu"
+	],
 	"author": "Dilettante258",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/Dilettante258/tieba.js.git"
 	},
 	"license": "ISC",
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@rollup/plugin-commonjs": "^28.0.2",
