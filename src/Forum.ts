@@ -38,7 +38,7 @@ export async function getThreadPid(
 	params: threadReq,
 ): Promise<{ page: ForumThreadPage; pidList: Array<string> }> {
 	const result = await threadPipeline(params);
-	if (result.threadList === undefined) {
+	if (result?.threadList === undefined) {
 		return { page: result.page, pidList: [] };
 	}
 	const pidList = result.threadList.map((item) => item.id);

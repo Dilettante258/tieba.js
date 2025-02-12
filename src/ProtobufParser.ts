@@ -28,7 +28,7 @@ export function userPostReqSerialize(uid: number, pn: number) {
 export function userPostResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.UserPostResIdl;
 	const decoded = Proto.decode(Buffer.from(buffer)).toJSON();
-	if (decoded?.error?.errorn !== 0) {
+	if (decoded?.error?.errorno !== 0) {
 		console.error(`${decoded?.error}`);
 	} else {
 		return decoded.data.postList;
@@ -53,7 +53,7 @@ export function forumReqSerialize(forumId: number) {
 export function forumResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.GetForumDetailResIdl;
 	const decoded = Proto.decode(buffer).toJSON();
-	if (decoded?.error?.errorno !== 0) {
+	if (decoded?.error?.errornoo !== 0) {
 		console.error(`${decoded?.error}`);
 	} else {
 		const data = decoded?.data?.forumInfo;
@@ -104,7 +104,7 @@ export function postReqSerialize(params: postReq) {
 export function postResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.PbPageResIdl;
 	const decoded = Proto.decode(buffer).toJSON();
-	if (decoded?.error?.errorn !== 0) {
+	if (decoded?.error?.errorno !== 0) {
 		console.error(`${decoded?.error}`);
 	} else {
 		return decoded.data;
@@ -145,7 +145,7 @@ export function threadReqSerialize(params: threadReq) {
 export function threadResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.FrsPageResIdl;
 	const decoded = Proto.decode(Buffer.from(buffer)).toJSON();
-	if (decoded?.error?.errorn !== 0) {
+	if (decoded?.error?.errorno !== 0) {
 		console.error(`${decoded?.error}`);
 	} else {
 		return decoded.data;
@@ -171,7 +171,7 @@ export function getUserByUidReqSerialize(uid: number) {
 export function getUserByUidResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.GetUserByUidResIdl;
 	const decoded = Proto.decode(Buffer.from(buffer)).toJSON();
-	if (decoded?.error?.errorn !== 0) {
+	if (decoded?.error?.errorno !== 0) {
 		console.error(`${decoded?.error}`);
 	} else {
 		return decoded.data.user;
@@ -199,7 +199,7 @@ export function getProfileReqSerialize(uid: number, page?: number) {
 export function getProfileResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.ProfileResIdl;
 	const decoded = Proto.decode(Buffer.from(buffer)).toJSON();
-	if (decoded?.error?.errorn !== 0) {
+	if (decoded?.error?.errorno !== 0) {
 		console.error(`${decoded?.error}`);
 	} else {
 		return decoded.data;
