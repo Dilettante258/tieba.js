@@ -5,3 +5,8 @@ export interface Agree {
 	disagreeNum: string;
 	diffAgreeNum: string;
 }
+
+export interface simpleAgree {
+	agreeNum: string;
+	disagreeNum: string;
+}

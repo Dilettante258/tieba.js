@@ -1,4 +1,4 @@
-import type { Agree } from "./common.js";
+import type { Agree, simpleAgree } from "./common.js";
 
 export interface PostRes {
 	forum: Forum;
@@ -223,7 +223,7 @@ export interface OutputPostList {
 	content: string;
 	subPostNumber: number;
 	authorId: string;
-	agree: Agree;
+	agree: simpleAgree;
 	subPostList?: OutputSubPostList[];
 	signature?: string;
 }

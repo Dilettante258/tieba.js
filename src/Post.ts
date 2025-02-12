@@ -48,7 +48,6 @@ export async function getPost(
 ): Promise<PostRes> {
 	const func = async (pg: number) => {
 		if (onlyThreadAuthor === undefined) {
-			console.log("debug");
 			return await getPostPipeline({ tid, page: pg });
 		}
 		if (withComment === false) {
@@ -64,12 +63,12 @@ export async function getPost(
 	};
 	if (page === "ALL") {
 		const page1 = await func(1);
-		const totalPage = Math.min(page1.page.totalPage, Number(maxPage));
+		const totalPage = Math.min(page1?.page?.totalPage, Number(maxPage));
 		let batch = 1;
-		if (totalPage > 70 && totalPage <= 250) batch = 2;
-		if (totalPage > 250) batch = 3;
-		if (totalPage > 400) batch = 4;
-		if (totalPage > 600) batch = 8;
+		if (totalPage > 30 && totalPage <= 100) batch = 4;
+		if (totalPage > 100) batch = 6;
+		if (totalPage > 300) batch = 8;
+		if (totalPage > 500) batch = 12;
 		const batchSize = Math.ceil(totalPage / batch);
 
 		const allPosts: Array<PostList> = [];
@@ -99,6 +98,5 @@ export async function getPost(
 		page1.userList.push(...allUsers);
 		return page1;
 	}
-	func(page).then(console.log);
 	return await func(page);
 }

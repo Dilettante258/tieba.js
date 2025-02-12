@@ -212,6 +212,10 @@ export function collatePost(
 	for (const post of posts) {
 		const temp: OutputPostList = {
 			...post,
+			agree: {
+				agreeNum: post.agree.agreeNum,
+				disagreeNum: post.agree.disagreeNum,
+			},
 			signature: post?.signature
 				? processContent(post.signature.content)
 				: undefined,

@@ -84,34 +84,6 @@ export interface Sprite {
 	"1": string;
 }
 
-export interface The1 {
-	slot_no: string;
-	slot_type: string;
-	icon: string;
-	value: string;
-	end_time: string;
-	name: string;
-	weight: number;
-	position: Position;
-	terminal: Terminal;
-	sprite: { [key: string]: string };
-	category_id: number;
-	type: number;
-	price: number;
-	is_force: number;
-	is_advanced: number;
-	title: string;
-	title_url: string;
-	intro: string;
-	intro_url: string;
-	forum_list: string;
-	pay_pic_pc: string;
-	pay_pic_pad: string;
-	level_1: Level;
-	level_2: Level;
-	level_3: Level;
-}
-
 export interface Level {
 	icon_3: string;
 	icon_2: string;
@@ -255,22 +227,21 @@ export interface FollowRes {
 }
 
 export interface FollowList {
-	follow_from: string;
-	work_creator_info: WorkCreatorInfo;
-	portrait: string;
-	portraith: string;
-	intro: string;
-	priv_sets: PrivSets;
-	bazhu_grade: AlaLiveInfo;
+	ala_info?: AlaInfo;
+	bazhu_grade: { desc?: string; level?: string };
 	business_account_info: BusinessAccountInfo;
 	display_auth_type: number;
+	follow_from: string;
+	has_concerned: number;
 	id: number;
+	intro: string;
 	name?: string;
 	name_show: string;
-	has_concerned: number;
-	ala_live_info?: AlaLiveInfo;
-	ala_info?: AlaInfo;
-	new_god_data?: NewGodData;
+	new_god_data?: NewGodDataInFollowList;
+	portrait: string;
+	portraith: string;
+	priv_sets: PrivSets;
+	work_creator_info: WorkCreatorInfo;
 }
 
 export interface AlaInfo {
@@ -280,15 +251,12 @@ export interface AlaInfo {
 	lat: number;
 }
 
-// biome-ignore lint/complexity/noBannedTypes: <explanation>
-export type AlaLiveInfo = {};
-
 export interface BusinessAccountInfo {
 	is_business_account: number;
 	is_forum_business_account: number;
 }
 
-export interface NewGodData {
+export interface NewGodDataInFollowList {
 	type_name: string;
 	status: number;
 	field_id: number;
@@ -297,15 +265,15 @@ export interface NewGodData {
 }
 
 export interface PrivSets {
-	location?: number;
-	like?: number;
-	group?: number;
-	post?: number;
-	live?: number;
-	reply?: number;
-	friend?: number;
 	bazhu_show_inside?: number;
 	bazhu_show_outside?: number;
+	friend?: number;
+	group?: number;
+	like?: number;
+	live?: number;
+	location?: number;
+	post?: number;
+	reply?: number;
 }
 
 export interface WorkCreatorInfo {
@@ -420,11 +388,6 @@ export interface UserGrowth {
 	levelId: number;
 }
 
-export interface SimpleVipInfo {
-	vStatus: number;
-	vLevel: number;
-}
-
 export interface VirtualImageInfo {
 	issetVirtualImage: number;
 	personalState: PersonalState;
@@ -446,13 +409,12 @@ export interface CondenseProfile {
 	fan: number;
 	follow: number;
 	sex: number;
-	group: number | undefined;
 	godData: string | undefined;
 	ipAddress: string;
 	userGrowth: number;
 	totalAgreeNum: string;
 	tbAge: string;
-	postNum: number;
+	postNum: string;
 	tbVip: boolean;
 	vip: {
 		level: string;

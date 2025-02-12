@@ -17,8 +17,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: Install dependencies
         run: npm ci
-      - name: Build protobuf codegen
-        run: npm run prepare
+      - name: Prepare Protobuf codegen
+        run: npm run pre-build
       - run: npm run build
       - name: Publish package in NPM
         run: npm publish --provenance --access public

@@ -6,13 +6,13 @@
 	"types": "dist/index.d.ts",
 	"type": "module",
 	"scripts": {
-		"test": "node --test --require ts-node/register ./test/User.test.ts",
-		"test-all": "node --test --require ts-node/register ./test/**/*.test.ts",
-		"test-coverage": "node --test --experimental-test-coverage --require ts-node/register ./test/**/*.test.ts",
+		"test": "node --test ./test/User.test.js",
+		"test-all": "node --test ./test/**/*.test.js",
+		"test-coverage": "node --test --experimental-test-coverage ./test/**/*.test.js",
 		"build": "rollup -c",
 		"insert-info": "scripts\\insert-package-info.sh",
 		"pbjs-codegen": "scripts\\pbjs-codegen.sh",
-		"prepare": "chmod +x ./scripts/*.sh && ./scripts/insert-package-info.sh && ./scripts/pbjs-codegen.sh"
+		"pre-build": "chmod +x ./scripts/*.sh && ./scripts/insert-package-info.sh && ./scripts/pbjs-codegen.sh"
 	},
 	"keywords": ["tieba", "protobuf", "node.js", "baidu"],
 	"author": "Dilettante258",

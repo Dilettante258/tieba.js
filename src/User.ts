@@ -112,7 +112,7 @@ export async function getFollow(
 		page: Number.isInteger(page) ? page : 1,
 	};
 	const res = await postFormData("/c/u/follow/followList", packRequest(params));
-	if (page === "needAll" && res.page.total_page !== "1") {
+	if (page === "needAll" && res.has_more === "1") {
 		const promises: Promise<any>[] = [];
 		for (let i = 2; i <= res.total_follow_num / 20 + 1; i++) {
 			params.page = i;
@@ -159,13 +159,12 @@ export async function condenseProfile(id: number): Promise<CondenseProfile> {
 		fan: profile.user.fansNum,
 		follow: profile.user.concernNum,
 		sex: profile.user.sex,
-		group: profile.user.privSets.group,
 		godData: profile.user.newGodData.fieldName,
 		ipAddress: profile.user.ipAddress,
 		userGrowth: profile.user.userGrowth.levelId,
 		totalAgreeNum: profile.userAgreeInfo.totalAgreeNum,
 		tbAge: panel.tb_age,
-		postNum: panel.post_num,
+		postNum: panel.post_num.toString(),
 		tbVip: panel.tb_vip,
 		vip: {
 			level: "v_level" in panel.vipInfo ? panel.vipInfo.v_level : "0",
