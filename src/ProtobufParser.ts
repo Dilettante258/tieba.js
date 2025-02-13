@@ -53,7 +53,7 @@ export function forumReqSerialize(forumId: number) {
 export function forumResDeserialize(buffer: Uint8Array) {
 	const Proto = decode.GetForumDetailResIdl;
 	const decoded = Proto.decode(buffer).toJSON();
-	if (decoded?.error?.errornoo !== 0) {
+	if (decoded?.error?.errorno !== 0) {
 		console.error(`${decoded?.error}`);
 	} else {
 		const data = decoded?.data?.forumInfo;

@@ -23,24 +23,28 @@ export async function getRawUserPost(
 	return await pipeline(uid, pn);
 }
 
-export async function getUserPost(uid: number, pn: number): Promise<UserPost[]>;
 export async function getUserPost(
 	uid: number,
-	from: number,
-	to: number,
+	pn: number,
+	needForumName?: boolean,
+): Promise<UserPost[]>;
+export async function getUserPost(
+	uid: number,
+	pageRange: [number, number],
+	needForumName?: boolean,
 ): Promise<UserPost[]>;
 
 export async function getUserPost(
 	uid: number,
-	param2: number,
-	param3?: number,
+	param2: number | [number, number],
+	needForumName?: boolean,
 ): Promise<UserPost[]> {
-	if (param3 === undefined) {
+	if (typeof param2 === "number") {
 		const RawUserPost = await getRawUserPost(uid, param2);
-		return await processUserPosts(RawUserPost, true);
+		return await processUserPosts(RawUserPost, needForumName);
 	}
 	const buffers: Buffer[] = [];
-	for (let i = Number(param2); i <= Number(param3); i++) {
+	for (let i = param2[0]; i <= param2[1]; i++) {
 		buffers.push(userPostReqSerialize(uid, i));
 	}
 	const RawUserPost = await Promise.all(
@@ -58,5 +62,5 @@ export async function getUserPost(
 		.then((results) => {
 			return results.flat();
 		});
-	return await processUserPosts(RawUserPost, true);
+	return await processUserPosts(RawUserPost, needForumName);
 }

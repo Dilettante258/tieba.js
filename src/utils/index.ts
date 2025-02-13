@@ -1,5 +1,6 @@
 import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
+import NodeCache from "node-cache";
 import { forumReqSerialize, forumResDeserialize } from "../ProtobufParser.js";
 import type {
 	FirstPostContent,
@@ -11,6 +12,7 @@ import type {
 	UserPost,
 } from "../types/index.js";
 
+export const ForumCache = new NodeCache();
 export const baseUrl = "http://tiebac.baidu.com";
 export const timeFormat = Intl.DateTimeFormat("zh-CN", {
 	timeStyle: "short",
@@ -124,9 +126,24 @@ export async function processUserPosts(
 	needForumName = false,
 ): Promise<UserPost[]> {
 	const result: UserPost[] = [];
+	if (needForumName) {
+		const forumIDList = [...new Set(posts.map((post) => post.forumId))];
+		const tasks = forumIDList.map(async (id) => {
+			if (ForumCache.has(id)) {
+				return;
+			}
+			try {
+				const forumName = await getForumName(Number(id));
+				ForumCache.set(id, forumName);
+			} catch (error) {
+				console.error(`获取${id}吧的吧名失败！`, error);
+			}
+		});
+		await Promise.all(tasks);
+	}
 	for (const post of posts) {
 		const forumName_ = needForumName
-			? await getForumName(Number(post.forumId))
+			? (ForumCache.get(post.forumId) as string)
 			: "";
 		for (const content of post.content) {
 			const affiliated = content.postType === "1";
@@ -267,12 +284,7 @@ export function processThread(thread: Thread) {
 	return temp;
 }
 
-const forumNameCache = {};
-
-export async function getForumName(forumId: number) {
-	if (forumNameCache[forumId]) {
-		return forumNameCache[forumId];
-	}
+export async function getForumName(forumId: number): Promise<string> {
 	const buffer = forumReqSerialize(forumId);
 	const res = await postProtobuf(
 		"/c/f/forum/getforumdetail?cmd=303021",
@@ -282,7 +294,5 @@ export async function getForumName(forumId: number) {
 		console.error("Error: 未找到吧！");
 		return "error";
 	}
-	const forumName = forumResDeserialize(res);
-	forumNameCache[forumId] = forumName;
-	return forumName;
+	return forumResDeserialize(res);
 }

@@ -6,7 +6,7 @@
 	"types": "dist/index.d.ts",
 	"type": "module",
 	"scripts": {
-		"test": "node --test ./test/Forum.test.js",
+		"test": "node --test ./test/UserPost.test.js",
 		"test-all": "node --test ./test/**/*.test.js",
 		"test-coverage": "node --test --experimental-test-coverage ./test/**/*.test.js",
 		"build": "rollup -c",
@@ -45,6 +45,7 @@
 	"dependencies": {
 		"@types/node": "^22.13.1",
 		"long": "^5.2.4",
+		"node-cache": "^5.1.2",
 		"node-html-parser": "^6.1.13"
 	}
 }
