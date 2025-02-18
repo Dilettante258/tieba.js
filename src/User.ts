@@ -112,7 +112,7 @@ export async function getFollow(
 		page: Number.isInteger(page) ? page : 1,
 	};
 	const res = await postFormData("/c/u/follow/followList", packRequest(params));
-	if (page === "needAll" && res.has_more === "1") {
+	if (page === "needAll" && res.has_more === 1) {
 		const promises: Promise<any>[] = [];
 		for (let i = 2; i <= res.total_follow_num / 20 + 1; i++) {
 			params.page = i;

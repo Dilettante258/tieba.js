@@ -1,6 +1,6 @@
 package tbclient;
 // tbclient.PbPage.PbPageResIdl
-    syntax = "proto3";
+syntax = "proto3";
 
 import "../Error.proto";
 import "../SimpleForum.proto";

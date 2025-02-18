@@ -9,5 +9,7 @@
 /node_modules/
 !/test/*.test.ts
 # for dev
-/scripts/
-
+!/scripts/
+!/test/*.test.js
+/src/proto/DataReqCollection.proto
+/src/proto/DataReSCollection.proto
