@@ -13,3 +13,4 @@
 !/test/*.test.js
 /src/proto/DataReqCollection.proto
 /src/proto/DataReSCollection.proto
+.env

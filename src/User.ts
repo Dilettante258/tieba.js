@@ -4,7 +4,8 @@ import {
 	getUserByUidReqSerialize,
 	getUserByUidResDeserialize,
 } from "./ProtobufParser.js";
-import type {
+import {
+	BazhuGradeClass,
 	CondenseProfile,
 	FanRes,
 	FollowRes,
@@ -13,13 +14,7 @@ import type {
 	UserPanel,
 	UserProfile,
 } from "./types/User.js";
-import {
-	baseUrl,
-	getData,
-	packRequest,
-	postFormData,
-	postProtobuf,
-} from "./utils/index.js";
+import {baseUrl, getData, packRequest, postFormData, postProtobuf,} from "./utils/index.js";
 
 export async function getUserInfo(username: string) {
 	const res = await fetch(`${baseUrl}/i/sys/user_json?un=${username}&ie=utf-8`);
@@ -94,12 +89,24 @@ export async function getFan(
 	};
 	const res = await postFormData("/c/u/fans/page", packRequest(params));
 	if (page === "needAll" && res.page.total_page !== "1") {
+		const promises: Array<Promise<FanRes>> = [];
 		for (let i = 2; i <= Number(res.page.total_page); i++) {
 			params.page = i;
-			const temp = await postFormData("/c/u/fans/page", packRequest(params));
-			res.user_list.push(...temp.user_list);
+			promises.push(postFormData("/c/u/fans/page", packRequest(params)));
 		}
+		const results = await Promise.allSettled(promises);
+		results.forEach(result => {
+			if (result.status === "fulfilled") {
+				res.user_list.push(...result.value.user_list);
+			} else {
+				console.warn("Request failed:", result.reason);
+			}
+		})
 	}
+	res.user_list.filter((user: { bazhu_grade: any[] | BazhuGradeClass | string; }) => (
+		typeof user.bazhu_grade === "string" ||
+		Array.isArray(user.bazhu_grade))
+	).map((user) => user.bazhu_grade = undefined);
 	return res;
 }
 
@@ -113,19 +120,23 @@ export async function getFollow(
 	};
 	const res = await postFormData("/c/u/follow/followList", packRequest(params));
 	if (page === "needAll" && res.has_more === 1) {
-		const promises: Promise<any>[] = [];
+		const promises: Promise<FollowRes>[] = [];
 		for (let i = 2; i <= res.total_follow_num / 20 + 1; i++) {
 			params.page = i;
 			promises.push(
 				postFormData("/c/u/follow/followList", packRequest(params)),
 			);
 		}
-		const results = await Promise.all(promises);
-		// biome-ignore lint/complexity/noForEach: <explanation>
-		results.forEach((result) => {
-			res.follow_list.push(...result.follow_list);
-		});
+		const results = await Promise.allSettled(promises);
+		results.forEach(result => {
+			if (result.status === "fulfilled") {
+				res.follow_list.push(...result.value.follow_list);
+			} else {
+				console.warn("Request failed:", result.reason);
+			}
+		})
 	}
+
 	return res;
 }
 
