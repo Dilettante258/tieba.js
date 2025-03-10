@@ -1,15 +1,23 @@
 import {describe, it} from "node:test";
 import {
   condenseProfile,
+  Config,
+  getFan,
+  getFollow,
   getHiddenLikeForum,
   getLikeForum,
   getPanel,
   getProfile,
   getUnameFromId,
-  getUserByUid, getUserInfo, getFan, getFollow
+  getUserByUid,
+  getUserInfo
 } from "../dist/index.js";
 
-
+Config.init({
+  bduss: process.env.BDUSS,
+  needPlainText: true,
+  timeFormat: Intl.DateTimeFormat("zh-CN", {})
+});
 
 describe("User", () => {
   it("getUserInfo", async () => {

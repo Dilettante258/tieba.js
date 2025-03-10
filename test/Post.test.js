@@ -1,6 +1,8 @@
 import {describe, it} from "node:test";
-import {collatePost, getPost} from "../dist";
+import {collatePost, Config, getPost} from "../dist";
 
+
+Config.init({});
 
 describe("Post", () => {
   it("getPost", async () => {

@@ -1,7 +1,8 @@
 import {describe, it} from "node:test";
 
-import {getRawUserPost, getUserPost} from "../dist/index.js";
+import {getRawUserPost, getUserPost, Config} from "../dist/index.js";
 
+Config.init({});
 
 describe("UserPost", () => {
   it("userPostReq", async () => {

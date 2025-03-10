@@ -1,7 +1,7 @@
-import { Buffer } from "node:buffer";
-import { createHash } from "node:crypto";
+import {Buffer} from "node:buffer";
+import {createHash} from "node:crypto";
 import NodeCache from "node-cache";
-import { forumReqSerialize, forumResDeserialize } from "../ProtobufParser.js";
+import {forumReqSerialize, forumResDeserialize} from "../ProtobufParser.js";
 import type {
 	FirstPostContent,
 	OutputPostList,
@@ -12,24 +12,69 @@ import type {
 	UserPost,
 } from "../types/index.js";
 
+
 export const ForumCache = new NodeCache();
 export const baseUrl = "http://tiebac.baidu.com";
-export const timeFormat = Intl.DateTimeFormat("zh-CN", {
-	timeStyle: "short",
-	dateStyle: "short",
-});
 
-let defaultBDUSS = "";
-let needPlainText = false;
+type initType = {
+	bduss?: string;
+	needPlainText?: boolean;
+	needTimestamp?: boolean;
+	timeFormat?: Intl.DateTimeFormat;
+};
 
-if (process.env.BDUSS) {
-	defaultBDUSS = process.env.BDUSS;
-	if (process.env.NEED_PLAIN_TEXT?.toLowerCase() !== "false") {
-		needPlainText = true;
+export class Config {
+	static instance: Config;
+	needPlainText!: boolean;
+	needTimestamp!: boolean;
+	timeFormat!: Intl.DateTimeFormat;
+
+	private constructor() {
 	}
-} else {
-	throw new Error("BDUSS环境变量未设置!");
+
+	private _bduss!: string;
+
+	get bduss() {
+		return this._bduss;
+	}
+
+	public static init({
+											 bduss = undefined,
+											 needPlainText = true,
+											 needTimestamp = false,
+											 timeFormat = Intl.DateTimeFormat("zh-CN", {
+												 timeStyle: "short",
+												 dateStyle: "short",
+											 })
+										 }: initType) {
+		if (Config.instance) {
+			throw new Error("Config实例已经被初始化了。");
+		}
+		Config.instance = new Config();
+
+		function isString(value: unknown): asserts value is string {
+			if (typeof value !== 'string')
+				throw new Error('Not a string');
+		}
+
+		if (bduss === undefined) {
+			isString(process.env.BDUSS);
+			throw new Error("未显式定义BDUSS，且BDUSS环境变量未设置!无法正常初始化。");
+		}
+		Config.instance._bduss = bduss ?? process.env.BDUSS;
+		Config.instance.needPlainText = needPlainText ?? process.env.NEED_PLAIN_TEXT?.toLowerCase() !== "false";
+		Config.instance.needTimestamp = needTimestamp ?? process.env.NEED_TIMESTAMP?.toLowerCase() !== "false";
+		Config.instance.timeFormat = timeFormat;
+	}
+
+	public static getInstance(): Config {
+		if (!Config.instance) {
+			throw new Error("配置实例尚未初始化。请先调用init()。");
+		}
+		return Config.instance;
+	}
 }
+
 
 export const fetchWithRetry = async (
 	// biome-ignore lint/complexity/noBannedTypes: <explanation>
@@ -96,6 +141,8 @@ export async function postProtobuf(url: string, buffer: Buffer) {
 
 export function packRequest(data: any) {
 	const params = new URLSearchParams(data);
+	const config = Config.getInstance();
+	const defaultBDUSS = config.bduss;
 	if (!params.has("BDUSS")) {
 		params.append("BDUSS", defaultBDUSS);
 	}
@@ -126,6 +173,9 @@ export async function processUserPosts(
 	needForumName = false,
 ): Promise<UserPost[]> {
 	const result: UserPost[] = [];
+	const config = Config.getInstance();
+	const needTimestamp = config.needTimestamp;
+	const timeFormat = config.timeFormat;
 	if (needForumName) {
 		const forumIDList = [...new Set(posts.map((post) => post.forumId))];
 		const tasks = forumIDList.map(async (id) => {
@@ -155,7 +205,7 @@ export async function processUserPosts(
 				threadId: post.threadId,
 				postId: post.postId,
 				cid: content.postId,
-				createTime: needPlainText
+				createTime: needTimestamp
 					? timeFormat.format(new Date(Number(content.createTime) * 1000))
 					: content.createTime,
 				affiliated: affiliated,
@@ -172,6 +222,9 @@ export async function processUserPosts(
 }
 
 export function processContent(data: PostListContent[] | FirstPostContent[]) {
+	const config = Config.getInstance();
+	const needPlainText = config.needPlainText;
+
 	let resultString = "";
 	if (data === undefined) {
 		return "";
