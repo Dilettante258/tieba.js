@@ -205,9 +205,7 @@ export async function processUserPosts(
 				threadId: post.threadId,
 				postId: post.postId,
 				cid: content.postId,
-				createTime: needTimestamp
-					? timeFormat.format(new Date(Number(content.createTime) * 1000))
-					: content.createTime,
+				createTime: needTimestamp ? content.createTime : timeFormat.format(new Date(Number(content.createTime) * 1000)),
 				affiliated: affiliated,
 				content: isReply
 					? content.postContent[2].text.slice(2)

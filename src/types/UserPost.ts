@@ -34,7 +34,7 @@ export type UserPost = {
 	threadId: string;
 	postId: string;
 	cid: string;
-	createTime: string | number;
+	createTime: string;
 	affiliated: boolean;
 	content: string;
 	replyTo?: string;
