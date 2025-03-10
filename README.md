@@ -12,7 +12,13 @@
 ## 使用示例
 以下是一个简单的使用示例：
 ```javascript
-import { getPanel } from "tieba.js";
+import {getPanel, Config} from "tieba.js";
+
+Config.init({
+    bduss: 'XXXXXXXXX',
+    needPlainText: true,
+    needTimestamp: false
+});
 
 const data = await getPanel('叫我老冰就好了');
 console.dir(data)
