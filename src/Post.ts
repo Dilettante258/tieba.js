@@ -1,10 +1,6 @@
-import {
-	type postReq,
-	postReqSerialize,
-	postResDeserialize,
-} from "./ProtobufParser.js";
-import type { PostList, PostRes, UserList } from "./types/Post.js";
-import { postProtobuf } from "./utils/index.js";
+import {type postReq, postReqSerialize, postResDeserialize,} from "./ProtobufParser.js";
+import type {PostList, PostRes, UserList} from "./types/Post.js";
+import {postProtobuf} from "./utils/index.js";
 
 const maxPage = 600;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -82,12 +78,14 @@ export async function getPost(
 			) {
 				promises.push(func(i));
 			}
-			let results = await Promise.all(promises);
-			results = results.flat();
-			const batchPosts = results
+			let results = await Promise.allSettled(promises);
+			const data = results
+				.filter((item) => item.status === "fulfilled")
+				.flatMap((item: PromiseFulfilledResult<PostRes>) => item.value);
+			const batchPosts = data
 				.map((item) => item.postList)
 				.reduce((acc, val) => acc.concat(val), []);
-			const batchUsers = results
+			const batchUsers = data
 				.map((item) => item.userList)
 				.reduce((acc, val) => acc.concat(val), []);
 			allPosts.push(...batchPosts);

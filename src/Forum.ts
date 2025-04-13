@@ -6,17 +6,8 @@ import {
 	threadReqSerialize,
 	threadResDeserialize,
 } from "./ProtobufParser.js";
-import type {
-	ForumMemberRes,
-	ForumThreadPage,
-	ForumThreadRes,
-} from "./types/Forum.js";
-import {
-	baseUrl,
-	fetchWithRetry,
-	postProtobuf,
-	processThread,
-} from "./utils/index.js";
+import type {ForumMemberRes, ForumThreadPage, ForumThreadRes,} from "./types/Forum.js";
+import {baseUrl, fetchWithRetry, postProtobuf, processThread,} from "./utils/index.js";
 
 async function threadPipeline(params: threadReq): Promise<ForumThreadRes> {
 	const buffer = threadReqSerialize(params);

@@ -95,18 +95,20 @@ export async function getFan(
 			promises.push(postFormData("/c/u/fans/page", packRequest(params)));
 		}
 		const results = await Promise.allSettled(promises);
-		results.forEach(result => {
+		results.forEach((result) => {
 			if (result.status === "fulfilled") {
 				res.user_list.push(...result.value.user_list);
 			} else {
 				console.warn("Request failed:", result.reason);
 			}
-		})
+		});
 	}
-	res.user_list.filter((user: { bazhu_grade: any[] | BazhuGradeClass | string; }) => (
-		typeof user.bazhu_grade === "string" ||
-		Array.isArray(user.bazhu_grade))
-	).map((user) => user.bazhu_grade = undefined);
+	res.user_list
+		.filter(
+			(user: { bazhu_grade: any[] | BazhuGradeClass | string }) =>
+				typeof user.bazhu_grade === "string" || Array.isArray(user.bazhu_grade),
+		)
+		.map((user) => (user.bazhu_grade = undefined));
 	return res;
 }
 
@@ -128,13 +130,15 @@ export async function getFollow(
 			);
 		}
 		const results = await Promise.allSettled(promises);
-		results.forEach(result => {
+		results.forEach((result) => {
 			if (result.status === "fulfilled") {
-				res.follow_list.push(...result.value.follow_list);
+				if (result.value?.follow_list !== undefined) {
+					res.follow_list.push(...result.value.follow_list);
+				}
 			} else {
 				console.warn("Request failed:", result.reason);
 			}
-		})
+		});
 	}
 
 	return res;

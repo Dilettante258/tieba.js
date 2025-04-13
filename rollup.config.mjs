@@ -1,13 +1,13 @@
 import commonjs from "@rollup/plugin-commonjs";
 import nodeResolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
-import { defineConfig } from "rollup";
+import {defineConfig} from "rollup";
 import progress from "rollup-plugin-progress";
 
 export default defineConfig({
 	treeshake: {
-		moduleSideEffects: false,
-		annotations: false,
+		moduleSideEffects: true,
+		annotations: true,
 	},
 	external: [
 		"node-html-parser",

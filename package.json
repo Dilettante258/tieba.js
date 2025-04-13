@@ -10,6 +10,8 @@
 		"test-all": "node --test ./test/**/*.test.js",
 		"test-coverage": "node --test --experimental-test-coverage ./test/**/*.test.js",
 		"build": "rollup -c",
+		"preversion": "biome format --write",
+		"postversion": "git push && git push --tags",
 		"insert-info": "scripts\\insert-package-info.sh",
 		"pbjs-codegen": "scripts\\pbjs-codegen.sh",
 		"pre-build": "chmod +x ./scripts/*.sh && ./scripts/insert-package-info.sh && ./scripts/pbjs-codegen.sh"

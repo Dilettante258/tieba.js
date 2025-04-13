@@ -12,7 +12,6 @@ import type {
 	UserPost,
 } from "../types/index.js";
 
-
 export const ForumCache = new NodeCache();
 export const baseUrl = "http://tiebac.baidu.com";
 
@@ -45,7 +44,7 @@ export class Config {
 											 timeFormat = Intl.DateTimeFormat("zh-CN", {
 												 timeStyle: "short",
 												 dateStyle: "short",
-											 })
+											 }),
 										 }: initType) {
 		if (Config.instance) {
 			throw new Error("Config实例已经被初始化了。");
@@ -53,17 +52,20 @@ export class Config {
 		Config.instance = new Config();
 
 		function isString(value: unknown): asserts value is string {
-			if (typeof value !== 'string')
-				throw new Error('Not a string');
+			if (typeof value !== "string") throw new Error("Not a string");
 		}
 
 		if (bduss === undefined) {
 			isString(process.env.BDUSS);
-			throw new Error("未显式定义BDUSS，且BDUSS环境变量未设置!无法正常初始化。");
+			throw new Error(
+				"未显式定义BDUSS，且BDUSS环境变量未设置!无法正常初始化。",
+			);
 		}
 		Config.instance._bduss = bduss ?? process.env.BDUSS;
-		Config.instance.needPlainText = needPlainText ?? process.env.NEED_PLAIN_TEXT?.toLowerCase() !== "false";
-		Config.instance.needTimestamp = needTimestamp ?? process.env.NEED_TIMESTAMP?.toLowerCase() !== "false";
+		Config.instance.needPlainText =
+			needPlainText ?? process.env.NEED_PLAIN_TEXT?.toLowerCase() !== "false";
+		Config.instance.needTimestamp =
+			needTimestamp ?? process.env.NEED_TIMESTAMP?.toLowerCase() !== "false";
 		Config.instance.timeFormat = timeFormat;
 	}
 
@@ -74,7 +76,6 @@ export class Config {
 		return Config.instance;
 	}
 }
-
 
 export const fetchWithRetry = async (
 	// biome-ignore lint/complexity/noBannedTypes: <explanation>
@@ -189,7 +190,7 @@ export async function processUserPosts(
 				console.error(`获取${id}吧的吧名失败！`, error);
 			}
 		});
-		await Promise.all(tasks);
+		await Promise.allSettled(tasks);
 	}
 	for (const post of posts) {
 		const forumName_ = needForumName
@@ -205,7 +206,9 @@ export async function processUserPosts(
 				threadId: post.threadId,
 				postId: post.postId,
 				cid: content.postId,
-				createTime: needTimestamp ? content.createTime : timeFormat.format(new Date(Number(content.createTime) * 1000)),
+				createTime: needTimestamp
+					? content.createTime
+					: timeFormat.format(new Date(Number(content.createTime) * 1000)),
 				affiliated: affiliated,
 				content: isReply
 					? content.postContent[2].text.slice(2)

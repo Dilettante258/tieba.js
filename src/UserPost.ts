@@ -1,9 +1,6 @@
-import {
-	userPostReqSerialize,
-	userPostResDeserialize,
-} from "./ProtobufParser.js";
-import type { RawUserPost, UserPost } from "./types/UserPost.js";
-import { postProtobuf, processUserPosts } from "./utils/index.js";
+import {userPostReqSerialize, userPostResDeserialize,} from "./ProtobufParser.js";
+import type {RawUserPost, UserPost} from "./types/UserPost.js";
+import {postProtobuf, processUserPosts} from "./utils/index.js";
 
 const UPAPI = "/c/u/feed/userpost?cmd=303002";
 
@@ -47,20 +44,26 @@ export async function getUserPost(
 	for (let i = param2[0]; i <= param2[1]; i++) {
 		buffers.push(userPostReqSerialize(uid, i));
 	}
-	const RawUserPost = await Promise.all(
+	const RawUserPost = await Promise.allSettled(
 		buffers.map((buffer) =>
 			postProtobuf("/c/u/feed/userpost?cmd=303002", buffer),
 		),
 	)
 		.then((res) => {
-			return Promise.all(
+			return Promise.allSettled(
 				res.map(async (res) => {
-					return userPostResDeserialize(res);
+					if (res.status === "fulfilled") {
+						return userPostResDeserialize(res.value);
+					} else {
+						console.warn("Request failed:", res.reason);
+					}
 				}),
 			);
 		})
 		.then((results) => {
-			return results.flat();
+			return results
+				.filter((res) => res.status === "fulfilled")
+				.flatMap((item) => item.value);
 		});
 	return await processUserPosts(RawUserPost, needForumName);
 }

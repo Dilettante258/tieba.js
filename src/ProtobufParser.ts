@@ -1,6 +1,6 @@
-import { Buffer } from "node:buffer";
-import { tbclient as decode } from "./pb-gen/decode.js";
-import { tbclient as encode } from "./pb-gen/encode.js";
+import {Buffer} from "node:buffer";
+import {tbclient as decode} from "./pb-gen/decode.js";
+import {tbclient as encode} from "./pb-gen/encode.js";
 
 type DeepConcrete<Type> = {
 	[Prop in keyof Type]-?: Type[Prop] extends object
