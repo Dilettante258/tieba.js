@@ -1,10 +1,11 @@
+import { Effect, Either, pipe } from "effect";
 import {
 	getProfileReqSerialize,
 	getProfileResDeserialize,
 	getUserByUidReqSerialize,
 	getUserByUidResDeserialize,
 } from "./ProtobufParser.js";
-import {
+import type {
 	BazhuGradeClass,
 	CondenseProfile,
 	FanRes,
@@ -14,35 +15,43 @@ import {
 	UserPanel,
 	UserProfile,
 } from "./types/User.js";
-import {baseUrl, getData, packRequest, postFormData, postProtobuf,} from "./utils/index.js";
+import {
+	baseUrl,
+	checkResBuffer,
+	getData,
+	packRequest,
+	postFormData,
+	postProtobuf,
+	requestWithRetry,
+} from "./utils/index.js";
 
-export async function getUserInfo(username: string) {
-	const res = await fetch(`${baseUrl}/i/sys/user_json?un=${username}&ie=utf-8`);
-	try {
-		return await res.json();
-	} catch (e) {
-		console.error("User not found");
-		return { error: "User not found" };
-	}
+class FetchError {
+	readonly _tag = "FetchError";
+	constructor(readonly error: unknown) {}
 }
 
-export async function getUnameFromId(uid: number): Promise<string> {
-	const myHeaders = new Headers();
-	myHeaders.append("Cookie", `BDUSS=${process.env.BDUSS}`);
-	const requestOptions: RequestInit = {
-		method: "GET",
-		headers: myHeaders,
-		redirect: "follow",
-	};
+export function getUserInfo(username: string) {
+	return getData(`/i/sys/user_json?un=${username}&ie=utf-8`);
+}
 
-	const res = await getData(
-		`/im/pcmsg/query/getUserInfo?chatUid=${uid}`,
-		requestOptions,
-	);
-	if (res.errno !== 0) {
-		console.error("BDUSS失效！");
-	}
-	return res.chatUser.uname;
+export function getUnameFromId(uid: number) {
+	return Effect.gen(function* () {
+		const myHeaders = new Headers();
+		myHeaders.append("Cookie", `BDUSS=${process.env.BDUSS}`);
+		const requestOptions = {
+			method: "GET",
+			headers: myHeaders,
+			redirect: "follow",
+		};
+		const res = yield* getData<{
+			errno: number;
+			chatUser: { uname: string };
+		}>(`/im/pcmsg/query/getUserInfo?chatUid=${uid}`, requestOptions);
+		if (res.errno !== 0) {
+			throw new FetchError("BDUSS失效！");
+		}
+		return res.chatUser.uname;
+	});
 }
 
 export type UserInfoFromUid = {
@@ -52,155 +61,189 @@ export type UserInfoFromUid = {
 	portrait: string;
 	intro: string;
 	tbAge: string;
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	newGodData: any;
 	tiebaUid: string;
 };
 
-export async function getUserByUid(uid: number): Promise<UserInfoFromUid> {
-	const buffer = getUserByUidReqSerialize(uid);
-	const responseData = await postProtobuf(
-		"/c/u/user/getUserByTiebaUid?cmd=309702",
-		buffer,
+export function getUserByUid(uid: number) {
+	return pipe(
+		getUserByUidReqSerialize(uid),
+		(buffer) => postProtobuf("/c/u/user/getUserByTiebaUid?cmd=309702", buffer),
+		Effect.andThen((buffer) => {
+			checkResBuffer(buffer);
+			return Effect.succeed(getUserByUidResDeserialize(buffer));
+		}),
 	);
-	return await getUserByUidResDeserialize(responseData);
 }
 
-export async function getProfile(id: number): Promise<UserProfile> {
-	const buffer = getProfileReqSerialize(id);
-	const responseData = await postProtobuf(
-		"/c/u/user/profile?cmd=303012",
-		buffer,
+export function getProfile(id: number) {
+	return pipe(
+		getProfileReqSerialize(id),
+		(buffer) => postProtobuf("/c/u/user/profile?cmd=303012", buffer),
+		Effect.andThen((buffer) => {
+			checkResBuffer(buffer);
+			return Effect.succeed(getProfileResDeserialize(buffer));
+		}),
 	);
-	return await getProfileResDeserialize(responseData);
 }
 
-export async function getPanel(un: string): Promise<UserPanel> {
-	const data = await getData(`/home/get/panel?un=${un}`);
-	return data.data;
+export function getPanel(un: string) {
+	return pipe(
+		Effect.tryPromise(() =>
+			fetch(`http://tiebac.baidu.com/home/get/panel?un=${un}`),
+		),
+		Effect.andThen((res) => Effect.tryPromise(() => res.json())),
+		Effect.andThen((res) => Effect.succeed(res as UserPanel)),
+	);
 }
 
-export async function getFan(
-	id: number,
-	page?: number | "needAll",
-): Promise<FanRes> {
-	const params = {
-		uid: id,
-		page: Number.isInteger(page) ? page : 1,
-	};
-	const res = await postFormData("/c/u/fans/page", packRequest(params));
-	if (page === "needAll" && res.page.total_page !== "1") {
-		const promises: Array<Promise<FanRes>> = [];
-		for (let i = 2; i <= Number(res.page.total_page); i++) {
-			params.page = i;
-			promises.push(postFormData("/c/u/fans/page", packRequest(params)));
-		}
-		const results = await Promise.allSettled(promises);
-		results.forEach((result) => {
-			if (result.status === "fulfilled") {
-				res.user_list.push(...result.value.user_list);
-			} else {
-				console.warn("Request failed:", result.reason);
+export function getFan(id: number, page: number | "needAll" = 1) {
+	return Effect.gen(function* () {
+		const params = {
+			uid: id.toString(),
+			page: Number.isInteger(page) ? page.toString() : "1",
+		};
+		let res = yield* postFormData<FanRes>(
+			"/c/u/fans/page",
+			packRequest(params),
+		);
+
+		if (page === "needAll" && res.page.total_page !== "1") {
+			const promises: Array<Effect.Effect<FanRes, FetchError>> = [];
+			for (let i = 2; i <= Number(res.page.total_page); i++) {
+				params.page = i.toString();
+				promises.push(
+					pipe(postFormData<FanRes>("/c/u/fans/page", packRequest(params))),
+				);
 			}
-		});
-	}
-	res.user_list
-		.filter(
-			(user: { bazhu_grade: any[] | BazhuGradeClass | string }) =>
-				typeof user.bazhu_grade === "string" || Array.isArray(user.bazhu_grade),
-		)
-		.map((user) => (user.bazhu_grade = undefined));
-	return res;
+			const results = yield* Effect.all(promises, {
+				concurrency: 5,
+				mode: "either",
+			});
+			const successResults = results.filter((item) => Either.isRight(item));
+
+			res = Object.assign(res, {
+				user_list: [
+					...res.user_list,
+					...successResults.map((i) => i.right.user_list),
+				],
+			});
+
+			res.user_list
+				.filter(
+					(user) =>
+						typeof user.bazhu_grade === "string" ||
+						Array.isArray(user.bazhu_grade),
+				)
+				.map((user) => Object.assign(user, { bazhu_grade: undefined }));
+			return res;
+		}
+		return res;
+	});
 }
 
-export async function getFollow(
+export function getFollow(id: number, page: number | "needAll" = 1) {
+	return Effect.gen(function* () {
+		const params = {
+			uid: id.toString(),
+			page: Number.isInteger(page) ? page.toString() : "1",
+		};
+		let res = yield* postFormData<FollowRes>(
+			"/c/u/follow/followList",
+			packRequest(params),
+		);
+
+		if (page === "needAll" && res.has_more === 1) {
+			const promises: Array<Effect.Effect<FollowRes, FetchError>> = [];
+			for (let i = 2; i <= res.total_follow_num / 20 + 1; i++) {
+				params.page = i.toString();
+				promises.push(
+					pipe(
+						postFormData<FollowRes>(
+							"/c/u/follow/followList",
+							packRequest(params),
+						),
+					),
+				);
+			}
+			const results = yield* Effect.all(promises, { concurrency: 5 });
+
+			res = Object.assign(res, {
+				follow_list: [...res.follow_list, ...results.map((i) => i.follow_list)],
+			});
+		}
+		return res;
+	});
+}
+
+export function getLikeForum(
 	id: number,
-	page?: number | "needAll",
-): Promise<FollowRes> {
-	const params = {
-		uid: id,
-		page: Number.isInteger(page) ? page : 1,
-	};
-	const res = await postFormData("/c/u/follow/followList", packRequest(params));
-	if (page === "needAll" && res.has_more === 1) {
-		const promises: Promise<FollowRes>[] = [];
-		for (let i = 2; i <= res.total_follow_num / 20 + 1; i++) {
-			params.page = i;
-			promises.push(
-				postFormData("/c/u/follow/followList", packRequest(params)),
+	page: number | "needAll" = 1,
+): Effect.Effect<LikeForum[], FetchError> {
+	return Effect.gen(function* () {
+		const params = {
+			friend_uid: id.toString(),
+			page_no: Number.isInteger(page) ? page.toString() : "1",
+			page_size: "400",
+		};
+		const res = yield* postFormData<{
+			forum_list: { "non-gconforum": LikeForum[]; gconforum: LikeForum[] };
+		}>("/c/f/forum/like", packRequest(params));
+		if (res?.forum_list?.gconforum) {
+			return res?.forum_list["non-gconforum"]?.concat(
+				res?.forum_list?.gconforum,
 			);
 		}
-		const results = await Promise.allSettled(promises);
-		results.forEach((result) => {
-			if (result.status === "fulfilled") {
-				if (result.value?.follow_list !== undefined) {
-					res.follow_list.push(...result.value.follow_list);
-				}
-			} else {
-				console.warn("Request failed:", result.reason);
-			}
-		});
-	}
-
-	return res;
+		return res?.forum_list ? res?.forum_list["non-gconforum"] : [];
+	});
 }
 
-export async function getLikeForum(
-	id: number,
-	page?: number | "needAll",
-): Promise<LikeForum[]> {
-	const params = {
-		friend_uid: id,
-		page_no: Number.isInteger(page) ? page : 1,
-		page_size: 400,
-	};
-	const res = await postFormData("/c/f/forum/like", packRequest(params));
-	if (res?.forum_list?.gconforum) {
-		return res?.forum_list["non-gconforum"]?.concat(res?.forum_list?.gconforum);
-	}
-	return res?.forum_list ? res?.forum_list["non-gconforum"] : [];
+export function condenseProfile(id: number) {
+	return Effect.gen(function* () {
+		const profile = yield* getProfile(id);
+		const uid = profile.user.tiebaUid;
+		const name = profile.user.name;
+		const panel = yield* getPanel(name);
+		return {
+			name: name,
+			nickname: profile.user.nameShow,
+			id: profile.user.id,
+			uid: uid,
+			portrait: profile.user.portrait,
+			fan: profile.user.fansNum,
+			follow: profile.user.concernNum,
+			sex: profile.user.sex,
+			godData: profile.user.newGodData.fieldName,
+			ipAddress: profile.user.ipAddress,
+			userGrowth: profile.user.userGrowth.levelId,
+			totalAgreeNum: profile.userAgreeInfo.totalAgreeNum,
+			tbAge: panel.tb_age,
+			postNum: panel.post_num.toString(),
+			tbVip: panel.tb_vip,
+			vip: {
+				level: "v_level" in panel.vipInfo ? panel.vipInfo.v_level : "0",
+				status: "v_status" in panel.vipInfo ? panel.vipInfo.v_status : "0",
+				expireTime:
+					"e_time" in panel.vipInfo ? Number(panel.vipInfo.e_time) : 0,
+			},
+			manager: panel.honor.manager,
+		};
+	});
 }
 
-export async function condenseProfile(id: number): Promise<CondenseProfile> {
-	const profile = await getProfile(id);
-	const uid = profile.user.tiebaUid;
-	const name = profile.user.name;
-	const panel = await getPanel(name);
-	return {
-		name: name,
-		nickname: profile.user.nameShow,
-		id: profile.user.id,
-		uid: uid,
-		portrait: profile.user.portrait,
-		fan: profile.user.fansNum,
-		follow: profile.user.concernNum,
-		sex: profile.user.sex,
-		godData: profile.user.newGodData.fieldName,
-		ipAddress: profile.user.ipAddress,
-		userGrowth: profile.user.userGrowth.levelId,
-		totalAgreeNum: profile.userAgreeInfo.totalAgreeNum,
-		tbAge: panel.tb_age,
-		postNum: panel.post_num.toString(),
-		tbVip: panel.tb_vip,
-		vip: {
-			level: "v_level" in panel.vipInfo ? panel.vipInfo.v_level : "0",
-			status: "v_status" in panel.vipInfo ? panel.vipInfo.v_status : "0",
-			expireTime: "e_time" in panel.vipInfo ? Number(panel.vipInfo.e_time) : 0,
-		},
-		manager: panel.honor.manager,
-	};
-}
-
-// 隐藏关注时使用该函数！只能获取一部分
-export async function getHiddenLikeForum(id: number): Promise<HiddenLikeForum> {
-	const profile = await getProfile(id);
-	const name = profile.user.name;
-	const panel = await getPanel(name);
-	const temp1 = profile.user.likeForum.map((i) => i.forumName);
-	const temp2 = Object.entries(panel.honor.grade).flatMap(
-		([_, value]) => value.forum_list,
-	);
-	return {
-		grade: panel.honor.grade,
-		plain: temp1.filter((item) => !temp2.includes(item)),
-	};
+export function getHiddenLikeForum(id: number) {
+	return Effect.gen(function* () {
+		const profile = yield* getProfile(id);
+		const name = profile.user.name;
+		const panel = yield* getPanel(name);
+		const temp1 = profile.user.likeForum.map((i) => i.forumName);
+		const temp2 = Object.entries(panel.honor.grade).flatMap(
+			([_, value]) => value.forum_list,
+		);
+		return {
+			grade: panel.honor.grade,
+			plain: temp1.filter((item) => !temp2.includes(item)),
+		};
+	});
 }

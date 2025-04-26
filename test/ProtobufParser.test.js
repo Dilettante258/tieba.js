@@ -9,6 +9,11 @@ import {
 } from "../dist/ProtobufParser.js";
 import * as assert from "node:assert";
 import {postProtobuf} from "../dist/utils/index.js";
+Config.init({
+  bduss: process.env.BDUSS,
+  needPlainText: true,
+  timeFormat: Intl.DateTimeFormat("zh-CN", {})
+});
 
 describe("ProtobufParser", () => {
   it("userPostReq", async () => {

@@ -1,69 +1,62 @@
-import {userPostReqSerialize, userPostResDeserialize,} from "./ProtobufParser.js";
-import type {RawUserPost, UserPost} from "./types/UserPost.js";
-import {postProtobuf, processUserPosts} from "./utils/index.js";
+import { Effect, pipe } from "effect";
+import {
+	userPostReqSerialize,
+	userPostResDeserialize,
+} from "./ProtobufParser.js";
+import type { RawUserPost } from "./types/UserPost.js";
+import {
+	checkResBuffer,
+	postProtobuf,
+	processUserPosts,
+} from "./utils/index.js";
 
 const UPAPI = "/c/u/feed/userpost?cmd=303002";
 
-async function pipeline(uid: number, pn: number) {
-	const buffer = userPostReqSerialize(uid, pn);
-	const responseData = await postProtobuf(UPAPI, buffer);
-	if (responseData.byteLength < 200) {
-		console.error("Fetch failed");
-	}
-	return userPostResDeserialize(responseData);
+function getUPpipeline(uid: number, pn: number) {
+	return pipe(
+		userPostReqSerialize(uid, pn),
+		(buffer) => postProtobuf(UPAPI, buffer),
+		Effect.andThen((responseData) => {
+			checkResBuffer(responseData);
+			return Effect.succeed(
+				userPostResDeserialize(responseData) as RawUserPost[],
+			);
+		}),
+	);
 }
 
-export async function getRawUserPost(
-	uid: number,
-	pn: number,
-): Promise<RawUserPost[]> {
-	return await pipeline(uid, pn);
+export function getRawUserPost(uid: number, pn: number) {
+	return getUPpipeline(uid, pn);
 }
 
-export async function getUserPost(
-	uid: number,
-	pn: number,
-	needForumName?: boolean,
-): Promise<UserPost[]>;
-export async function getUserPost(
-	uid: number,
-	pageRange: [number, number],
-	needForumName?: boolean,
-): Promise<UserPost[]>;
-
-export async function getUserPost(
+export function getUserPost(
 	uid: number,
 	param2: number | [number, number],
 	needForumName?: boolean,
-): Promise<UserPost[]> {
+) {
 	if (typeof param2 === "number") {
-		const RawUserPost = await getRawUserPost(uid, param2);
-		return await processUserPosts(RawUserPost, needForumName);
+		return pipe(
+			getUPpipeline(uid, param2),
+			Effect.andThen((rawPosts) =>
+				processUserPosts(rawPosts, needForumName),
+			),
+      Effect.andThen((posts) => Effect.succeed(posts)),
+		);
 	}
-	const buffers: Buffer[] = [];
-	for (let i = param2[0]; i <= param2[1]; i++) {
-		buffers.push(userPostReqSerialize(uid, i));
-	}
-	const RawUserPost = await Promise.allSettled(
-		buffers.map((buffer) =>
-			postProtobuf("/c/u/feed/userpost?cmd=303002", buffer),
+	const [start, end] = param2;
+	const effects = Array.from(
+		{ length: end - start + 1 },
+		(_, i) => start + i,
+	).map((page) =>
+		pipe(
+			getUPpipeline(uid, page),
+			Effect.andThen((rawPosts) => processUserPosts(rawPosts, needForumName)
+				
+			),
+			Effect.andThen((posts) => Effect.succeed(posts)),
 		),
-	)
-		.then((res) => {
-			return Promise.allSettled(
-				res.map(async (res) => {
-					if (res.status === "fulfilled") {
-						return userPostResDeserialize(res.value);
-					} else {
-						console.warn("Request failed:", res.reason);
-					}
-				}),
-			);
-		})
-		.then((results) => {
-			return results
-				.filter((res) => res.status === "fulfilled")
-				.flatMap((item) => item.value);
-		});
-	return await processUserPosts(RawUserPost, needForumName);
+	);
+	return Effect.all(effects).pipe(
+		Effect.andThen((posts) => Effect.succeed(posts.flat())),
+	);
 }

@@ -6,7 +6,11 @@ const mainlandDivision = ["河北", "山西", "辽宁", "吉林", "黑龙江", "
 //ts-ignore
 const specialDivision = ["中国台湾", "中国香港", "中国澳门"]
 
-Config.init({});
+Config.init({
+  bduss: process.env.BDUSS,
+  needPlainText: true,
+  timeFormat: Intl.DateTimeFormat("zh-CN", {})
+});
 
 describe("Forum", () => {
   // it("getRawThread", async () => {

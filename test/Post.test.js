@@ -2,7 +2,11 @@ import {describe, it} from "node:test";
 import {collatePost, Config, getPost} from "../dist";
 
 
-Config.init({});
+Config.init({
+  bduss: process.env.BDUSS,
+  needPlainText: true,
+  timeFormat: Intl.DateTimeFormat("zh-CN", {})
+});
 
 describe("Post", () => {
   it("getPost", async () => {

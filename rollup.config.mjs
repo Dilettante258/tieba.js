@@ -17,6 +17,8 @@ export default defineConfig({
 		"long",
 		"@protobufjs",
 		"node-cache",
+		"effect",
+		"undici",
 	],
 	input: "src/index.ts",
 	output: {
