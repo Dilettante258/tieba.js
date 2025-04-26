@@ -1,4 +1,4 @@
-import type {Agree} from "./common.js";
+import type { Agree } from "./common.js";
 
 export interface ForumThreadRes {
 	forum: Forum;

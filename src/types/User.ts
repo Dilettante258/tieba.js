@@ -1,4 +1,4 @@
-import type {FirstPostContent} from "./Forum.js";
+import type { FirstPostContent } from "./Forum.js";
 
 export interface UserPanel {
 	name: string;

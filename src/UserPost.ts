@@ -37,10 +37,8 @@ export function getUserPost(
 	if (typeof param2 === "number") {
 		return pipe(
 			getUPpipeline(uid, param2),
-			Effect.andThen((rawPosts) =>
-				processUserPosts(rawPosts, needForumName),
-			),
-      Effect.andThen((posts) => Effect.succeed(posts)),
+			Effect.andThen((rawPosts) => processUserPosts(rawPosts, needForumName)),
+			Effect.andThen((posts) => Effect.succeed(posts)),
 		);
 	}
 	const [start, end] = param2;
@@ -50,9 +48,7 @@ export function getUserPost(
 	).map((page) =>
 		pipe(
 			getUPpipeline(uid, page),
-			Effect.andThen((rawPosts) => processUserPosts(rawPosts, needForumName)
-				
-			),
+			Effect.andThen((rawPosts) => processUserPosts(rawPosts, needForumName)),
 			Effect.andThen((posts) => Effect.succeed(posts)),
 		),
 	);

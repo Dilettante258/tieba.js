@@ -5,7 +5,11 @@ import {
 	postResDeserialize,
 } from "./ProtobufParser.js";
 import type { PostList, PostRes, UserList } from "./types/Post.js";
-import { checkResBuffer, type FetchError, postProtobuf } from "./utils/index.js";
+import {
+	checkResBuffer,
+	type FetchError,
+	postProtobuf,
+} from "./utils/index.js";
 
 const maxPage = 600;
 

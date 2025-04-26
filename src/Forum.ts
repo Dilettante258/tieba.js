@@ -7,10 +7,7 @@ import {
 	threadReqSerialize,
 	threadResDeserialize,
 } from "./ProtobufParser.js";
-import type {
-	ForumThreadPage,
-	ForumThreadRes,
-} from "./types/Forum.js";
+import type { ForumThreadPage, ForumThreadRes } from "./types/Forum.js";
 import {
 	baseUrl,
 	checkResBuffer,
@@ -18,7 +15,7 @@ import {
 	IllegalParameterError,
 	postProtobuf,
 	processThread,
-  requestWithRetry,
+	requestWithRetry,
 } from "./utils/index.js";
 
 function threadPipeline(params: threadReq) {
@@ -82,20 +79,20 @@ export function getForumInfoByID(forumId: number) {
 
 export function getForumID(forumName: string) {
 	return pipe(
-    requestWithRetry(
-      `https://tiebac.baidu.com/f/commit/share/fnameShareApi?fname=${forumName}&ie=utf-8`,
-      {
-        method: "GET",
-      },
-      "json"
-    ),
-    Effect.andThen((res) => {
-      if (!res) {
-        throw new FetchError(`Error: 未查询到吧信息，吧ID：${forumName}`);
-      }
-      return res.data.fid as number;
-    }),
-  )
+		requestWithRetry(
+			`https://tiebac.baidu.com/f/commit/share/fnameShareApi?fname=${forumName}&ie=utf-8`,
+			{
+				method: "GET",
+			},
+			"json",
+		),
+		Effect.andThen((res) => {
+			if (!res) {
+				throw new FetchError(`Error: 未查询到吧信息，吧ID：${forumName}`);
+			}
+			return res.data.fid as number;
+		}),
+	);
 }
 import { request } from "undici";
 

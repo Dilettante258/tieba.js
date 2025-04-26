@@ -223,9 +223,9 @@ export function packRequest(
 }
 
 export function processUserPosts(posts: RawUserPost[], needForumName = false) {
-  if(posts===undefined) {
-    return Effect.succeed([])
-  }
+	if (posts === undefined) {
+		return Effect.succeed([]);
+	}
 	return Effect.gen(function* () {
 		const result: UserPost[] = [];
 		const config = Config.getInstance();
@@ -244,35 +244,35 @@ export function processUserPosts(posts: RawUserPost[], needForumName = false) {
 				forumIDList.map((id) => forumCache.get(id)),
 				{ concurrency: 5 },
 			);
-		
 
-		for (const post of posts) {
-			const forumName_ = needForumName
-				? (yield* forumCache.get(post.forumId)) as string
-				: "";
-			for (const content of post.content) {
-				const affiliated = content.postType === "1";
-				const isReply = affiliated && content?.postContent[1]?.type === 4;
-				result.push({
-					forumId: Number(post.forumId),
-					forumName: forumName_,
-					title: post.title.slice(3),
-					threadId: post.threadId,
-					postId: post.postId,
-					cid: content.postId,
-					createTime: needTimestamp
-						? content.createTime
-						: timeFormat.format(new Date(Number(content.createTime) * 1000)),
-					affiliated: affiliated,
-					content: isReply
-						? content.postContent[2].text.slice(2)
-						: content.postContent.length === 1
-							? content.postContent[0].text
-							: content.postContent.map((item) => item.text).join(""),
-					replyTo: isReply ? content.postContent[1].text : undefined,
-				});
+			for (const post of posts) {
+				const forumName_ = needForumName
+					? ((yield* forumCache.get(post.forumId)) as string)
+					: "";
+				for (const content of post.content) {
+					const affiliated = content.postType === "1";
+					const isReply = affiliated && content?.postContent[1]?.type === 4;
+					result.push({
+						forumId: Number(post.forumId),
+						forumName: forumName_,
+						title: post.title.slice(3),
+						threadId: post.threadId,
+						postId: post.postId,
+						cid: content.postId,
+						createTime: needTimestamp
+							? content.createTime
+							: timeFormat.format(new Date(Number(content.createTime) * 1000)),
+						affiliated: affiliated,
+						content: isReply
+							? content.postContent[2].text.slice(2)
+							: content.postContent.length === 1
+								? content.postContent[0].text
+								: content.postContent.map((item) => item.text).join(""),
+						replyTo: isReply ? content.postContent[1].text : undefined,
+					});
+				}
 			}
-		}}
+		}
 		return result;
 	});
 }
