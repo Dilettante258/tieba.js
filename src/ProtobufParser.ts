@@ -180,7 +180,7 @@ export function getUserByUidResDeserialize(buffer: Uint8Array) {
 
 export function getProfileReqSerialize(id: number | string, page?: number) {
 	const Proto = encode.ProfileReqIdl;
-	// biome-ignore lint/suspicious/noExplicitAny: 
+	// biome-ignore lint/suspicious/noExplicitAny:
 	const payload: any = {
 		data: {
 			needPostCount: 1,
@@ -191,11 +191,11 @@ export function getProfileReqSerialize(id: number | string, page?: number) {
 			},
 		},
 	};
-  if (typeof id === "string") {
-    payload.data.friendUidPortrait = id;
-  } else {
-    payload.data.uid = id;
-  }
+	if (typeof id === "string") {
+		payload.data.friendUidPortrait = id;
+	} else {
+		payload.data.uid = id;
+	}
 	const message = Proto.create(payload);
 	const buffer = Proto.encode(message).finish();
 	return Buffer.from(buffer);

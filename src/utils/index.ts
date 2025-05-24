@@ -1,4 +1,4 @@
-import { Console, Effect, pipe, Schedule } from "effect";
+import { Effect, pipe, Schedule } from "effect";
 import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
 import { forumReqSerialize, forumResDeserialize } from "../ProtobufParser.js";

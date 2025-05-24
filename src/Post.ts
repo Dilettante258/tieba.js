@@ -33,8 +33,8 @@ export function getPost(
 		commentRn: number;
 		commentsSortByTime: boolean;
 	},
-): Effect.Effect<PostRes, FetchError> {
-	const func = (pg: number): Effect.Effect<PostRes, FetchError> => {
+) {
+	const func = (pg: number) => {
 		if (onlyThreadAuthor === undefined) {
 			return getPostPipeline({ tid, page: pg });
 		}

@@ -1,4 +1,4 @@
-import { Effect, pipe, Schedule } from "effect";
+import { Effect, pipe } from "effect";
 import HTMLParser from "node-html-parser";
 import {
 	forumReqSerialize,
@@ -107,7 +107,6 @@ export function getForumID(forumName: string) {
 		}),
 	);
 }
-import { request } from "undici";
 
 export function getForumMembers(forumName: string, page: number) {
 	if (page > 500 || page < 1) {

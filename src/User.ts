@@ -9,9 +9,10 @@ import type {
 	FanRes,
 	FollowRes,
 	LikeForum,
+	Manager,
 	UserInfo,
 	UserPanel,
-  UserProfile,
+	UserProfile,
 } from "./types/User.js";
 import {
 	checkResBuffer,
@@ -201,7 +202,29 @@ export function condenseProfile(id: number) {
 		const uid = profile.user.tiebaUid;
 		const name = profile.user.name;
 		const panel = yield* getPanel(name);
-		return {
+		const result: {
+      name: string;
+      nickname: string;
+      id: string;
+      uid: string;
+      portrait: string;
+      fan: number;
+      follow: number;
+      sex: number;
+      godData: string;
+      ipAddress: string;
+      userGrowth: number;
+      totalAgreeNum: string;
+      tbAge: string;
+      postNum: string;
+      tbVip: boolean;
+      vip?: {
+        level: string;
+        status: string;
+        expireTime: number;
+      }
+      manager?: Manager;
+  } = {
 			name: name,
 			nickname: profile.user.nameShow,
 			id: profile.user.id,
@@ -214,17 +237,22 @@ export function condenseProfile(id: number) {
 			ipAddress: profile.user.ipAddress,
 			userGrowth: profile.user.userGrowth.levelId,
 			totalAgreeNum: profile.userAgreeInfo.totalAgreeNum,
-			tbAge: panel.tb_age,
-			postNum: panel.post_num.toString(),
+			tbAge: profile.user.tbAge,
+			postNum: String(profile.user.postNum),
 			tbVip: panel.tb_vip,
-			vip: {
+		};
+		if (panel.vipInfo) {
+			result.vip = {
 				level: "v_level" in panel.vipInfo ? panel.vipInfo.v_level : "0",
 				status: "v_status" in panel.vipInfo ? panel.vipInfo.v_status : "0",
 				expireTime:
 					"e_time" in panel.vipInfo ? Number(panel.vipInfo.e_time) : 0,
-			},
-			manager: panel.honor.manager,
-		};
+			};
+		}
+		if (panel.honor?.manager) {
+			result.manager = panel.honor.manager;
+		}
+		return result;
 	});
 }
 
@@ -234,11 +262,11 @@ export function getHiddenLikeForum(id: number) {
 		const name = profile.user.name;
 		const panel = yield* getPanel(name);
 		const temp1 = profile.user.likeForum.map((i) => i.forumName);
-		const temp2 = Object.entries(panel.honor.grade).flatMap(
+		const temp2 = Object.entries(panel.honor?.grade ?? {}).flatMap(
 			([_, value]) => value.forum_list,
 		);
 		return {
-			grade: panel.honor.grade,
+			grade: panel.honor?.grade ?? {},
 			plain: temp1.filter((item) => !temp2.includes(item)),
 		};
 	});

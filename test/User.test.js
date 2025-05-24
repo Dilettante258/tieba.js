@@ -50,8 +50,10 @@ describe("User", () => {
   it("getUnameFromId", async () => {
     const data = await consume(getUnameFromId(5991323492));
   });
-  it("getUnameFromId", async () => {
+  it("getCondenseProfile", async () => {
     const data = await consume(condenseProfile(5991323492));
+    console.log(data);
     const data2 = await consume(getHiddenLikeForum(5991323492));
+    console.log(data2);
   });
 });
