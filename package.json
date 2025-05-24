@@ -6,7 +6,7 @@
 	"types": "dist/index.d.ts",
 	"type": "module",
 	"scripts": {
-		"test": "node --test ./test/UserPost.test.js",
+		"test": "node --test ./test/Forum.test.js",
 		"test-all": "node --test ./test/**/*.test.js",
 		"test-coverage": "node --test --experimental-test-coverage ./test/**/*.test.js",
 		"build": "rollup -c",

@@ -6,23 +6,19 @@ import {
 	getUserByUidResDeserialize,
 } from "./ProtobufParser.js";
 import type {
-	BazhuGradeClass,
-	CondenseProfile,
 	FanRes,
 	FollowRes,
-	HiddenLikeForum,
 	LikeForum,
+	UserInfo,
 	UserPanel,
-	UserProfile,
+  UserProfile,
 } from "./types/User.js";
 import {
-	baseUrl,
 	checkResBuffer,
 	getData,
 	packRequest,
 	postFormData,
 	postProtobuf,
-	requestWithRetry,
 } from "./utils/index.js";
 
 class FetchError {
@@ -31,7 +27,7 @@ class FetchError {
 }
 
 export function getUserInfo(username: string) {
-	return getData(`/i/sys/user_json?un=${username}&ie=utf-8`);
+	return getData<UserInfo>(`/i/sys/user_json?un=${username}&ie=utf-8`);
 }
 
 export function getUnameFromId(uid: number) {
@@ -77,13 +73,13 @@ export function getUserByUid(uid: number) {
 	);
 }
 
-export function getProfile(id: number) {
+export function getProfile(id: number | string) {
 	return pipe(
 		getProfileReqSerialize(id),
 		(buffer) => postProtobuf("/c/u/user/profile?cmd=303012", buffer),
 		Effect.andThen((buffer) => {
 			checkResBuffer(buffer);
-			return Effect.succeed(getProfileResDeserialize(buffer));
+			return Effect.succeed(getProfileResDeserialize(buffer) as UserProfile);
 		}),
 	);
 }

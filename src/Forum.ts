@@ -7,7 +7,11 @@ import {
 	threadReqSerialize,
 	threadResDeserialize,
 } from "./ProtobufParser.js";
-import type { ForumThreadPage, ForumThreadRes } from "./types/Forum.js";
+import type {
+	ForumMemberRes,
+	ForumThreadPage,
+	ForumThreadRes,
+} from "./types/Forum.js";
 import {
 	baseUrl,
 	checkResBuffer,
@@ -36,11 +40,20 @@ export function getRawThread(params: threadReq) {
 export function getThread(params: threadReq) {
 	return pipe(
 		threadPipeline(params),
-		Effect.andThen((threads) => {
-			const threadList = threads.threadList.map(processThread);
-			return Object.assign(threads, {
-				threadList,
-			});
+		Effect.flatMap((threadsData) => {
+			const processedThreadList = Effect.all(
+				threadsData.threadList.map(processThread),
+			);
+			return pipe(
+				processedThreadList,
+				Effect.map(
+					(processedThreads) =>
+						({
+							...threadsData,
+							threadList: processedThreads,
+						}) as unknown as ForumThreadRes,
+				),
+			);
 		}),
 	);
 }
@@ -98,9 +111,7 @@ import { request } from "undici";
 
 export function getForumMembers(forumName: string, page: number) {
 	if (page > 500 || page < 1) {
-		return Effect.fail(
-			new IllegalParameterError("超出合法页面范围，最大允许 500 页"),
-		);
+		throw new IllegalParameterError("超出合法页面范围，最大允许 500 页");
 	}
 
 	return Effect.gen(function* () {
@@ -109,17 +120,13 @@ export function getForumMembers(forumName: string, page: number) {
 		url.searchParams.append("pn", page.toString());
 		url.searchParams.append("ie", "utf-8");
 
-		const res = yield* pipe(
-			Effect.tryPromise(() => request(url)),
-			Effect.andThen(async (response) => await response.body.arrayBuffer()),
-			Effect.retry({
-				schedule: Schedule.exponential(1000),
-				times: 3,
-			}),
+		const buf = yield* pipe(
+			Effect.tryPromise(() => fetch(url.toString())),
+			Effect.andThen((res) => Effect.tryPromise(() => res.arrayBuffer())),
 		);
 
 		const decoder = new TextDecoder("gbk");
-		const resText = decoder.decode(res);
+		const resText = decoder.decode(buf);
 		const doc = HTMLParser.parse(resText);
 		const data = doc.querySelectorAll("a.user_name").map((element) => {
 			return {
@@ -150,6 +157,6 @@ export function getForumMembers(forumName: string, page: number) {
 			forumId: forumData.forum_id,
 			forumName: forumData.forum_name,
 		};
-		return { data, pageData };
+		return { data, pageData } satisfies ForumMemberRes;
 	});
 }

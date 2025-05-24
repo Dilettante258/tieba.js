@@ -30,7 +30,9 @@ describe("User", () => {
     const data = await consume(getUserByUid(30861022));
   });
   it("getProfile", async () => {
-    const data = await consume(getProfile(458523362));
+    // const data = await consume(getProfile(458523362));
+    const data2 = await consume(getProfile("tb.1.5cbeff48.BFTm1j0MhGcFt-QXdcexQw"));
+    console.log(data2);
   });
   it("getPanel", async () => {
     const data = await consume(getPanel('Admire_02'));

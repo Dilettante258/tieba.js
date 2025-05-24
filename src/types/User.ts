@@ -1,5 +1,37 @@
 import type { FirstPostContent } from "./Forum.js";
 
+export interface UserInfo {
+	no: number;
+	error: string;
+	data: {
+		name: string;
+		identity: number;
+		name_show: string;
+		show_nickname: string;
+		profession_manager_nick_name: string;
+		iconinfo: null;
+		new_iconinfo: unknown;
+		bg_id: number;
+		portrait: string;
+		portrait_h: string;
+		portrait_time: number;
+		sex: string;
+		tb_age: number;
+		post_num: number;
+		honor: Honor;
+		can_followed: number;
+		is_block: number;
+		is_private: number;
+		mParr_props: any[];
+		tbmall_month_icon: null;
+		free_flag: null;
+		marriage: any[];
+		vipInfo: any[];
+		tb_vip: boolean;
+		followed_count: number;
+	};
+}
+
 export interface UserPanel {
 	name: string;
 	identity: number;
