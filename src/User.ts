@@ -203,28 +203,28 @@ export function condenseProfile(id: number) {
 		const name = profile.user.name;
 		const panel = yield* getPanel(name);
 		const result: {
-      name: string;
-      nickname: string;
-      id: string;
-      uid: string;
-      portrait: string;
-      fan: number;
-      follow: number;
-      sex: number;
-      godData: string;
-      ipAddress: string;
-      userGrowth: number;
-      totalAgreeNum: string;
-      tbAge: string;
-      postNum: string;
-      tbVip: boolean;
-      vip?: {
-        level: string;
-        status: string;
-        expireTime: number;
-      }
-      manager?: Manager;
-  } = {
+			name: string;
+			nickname: string;
+			id: string;
+			uid: string;
+			portrait: string;
+			fan: number;
+			follow: number;
+			sex: number;
+			godData: string;
+			ipAddress: string;
+			userGrowth: number;
+			totalAgreeNum: string;
+			tbAge: string;
+			postNum: string;
+			tbVip: boolean;
+			vip?: {
+				level: string;
+				status: string;
+				expireTime: number;
+			};
+			manager?: Manager;
+		} = {
 			name: name,
 			nickname: profile.user.nameShow,
 			id: profile.user.id,

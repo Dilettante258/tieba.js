@@ -1,5 +1,11 @@
 import { describe, it } from "node:test";
-import { getThreadPid, getThread, getForumMembers } from "../dist/Forum.js";
+import {
+  getThreadPid,
+  getThread,
+  getForumMembers,
+  getForumID,
+  getForumInfoByID
+} from "../dist/Forum.js";
 import { Config, consume } from "../dist/index.js";
 const mainlandDivision = [
   "河北",
@@ -44,6 +50,14 @@ Config.init({
 });
 
 describe("Forum", () => {
+  it("getForumID", async () => {
+    const temp = await consume(getForumID("v"));
+    console.log(temp);
+  });
+  it("getForumInfoByID", async () => {
+    const temp = await consume(getForumInfoByID(97650));
+    console.log(temp);
+  });
   it("getRawThread", async () => {
     const temp = await consume(
       getThread({

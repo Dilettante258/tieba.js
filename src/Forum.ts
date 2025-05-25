@@ -16,6 +16,7 @@ import {
 	baseUrl,
 	checkResBuffer,
 	FetchError,
+	getData,
 	IllegalParameterError,
 	postProtobuf,
 	processThread,
@@ -92,12 +93,9 @@ export function getForumInfoByID(forumId: number) {
 
 export function getForumID(forumName: string) {
 	return pipe(
-		requestWithRetry(
-			`https://tiebac.baidu.com/f/commit/share/fnameShareApi?fname=${forumName}&ie=utf-8`,
-			{
-				method: "GET",
-			},
-			"json",
+		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		getData<any>(
+			`/f/commit/share/fnameShareApi?fname=${forumName}&ie=utf-8`,
 		),
 		Effect.andThen((res) => {
 			if (!res) {

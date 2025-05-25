@@ -141,7 +141,7 @@ export const requestWithRetry = (
 
 export function getData<T>(
 	url: string,
-	requestOptions: Parameters<typeof request>[1] = {},
+	requestOptions: Parameters<typeof request>[1] = { method: "GET" },
 ): Effect.Effect<T, FetchError> {
 	return requestWithRetry(url, requestOptions, "json");
 }
