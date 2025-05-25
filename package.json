@@ -1,6 +1,6 @@
 {
 	"name": "tieba.js",
-	"version": "2.1.1",
+	"version": "2.1.2",
 	"description": "一个基于JavaScript实现的百度贴吧API调用库。",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
