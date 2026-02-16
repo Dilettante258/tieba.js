@@ -15,7 +15,8 @@
 		"dev": "tsc --emitDeclarationOnly --outDir dist --watch",
 		"proto:gen": "bun run scripts/proto-gen.ts",
 		"typecheck": "tsc --noEmit",
-		"test": "bun test",
+		"test": "bun test test/*.test.ts",
+		"test:integration": "bun test test/integration/",
 		"docs": "typedoc"
 	},
 	"dependencies": {
