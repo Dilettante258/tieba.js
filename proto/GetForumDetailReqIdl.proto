@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package tbclient;
+
+import "CommonReq.proto";
+
+message GetForumDetailReqIdl {
+  message DataReq {
+    int64 forum_id = 1;
+    CommonReq common = 2;
+  }
+  DataReq data = 1;
+}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package tbclient;
+
+message PollInfo {
+  int32 is_multi = 2;
+  int64 total_num = 3;
+  message PollOption {
+    int64 num = 2;
+    string text = 3;
+  }
+  repeated PollOption options = 9;
+  int64 total_poll = 11;
+  string title = 12;
+}

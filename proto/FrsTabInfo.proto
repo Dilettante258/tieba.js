@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package tbclient;
+
+message FrsTabInfo {
+  int32 tab_id = 1;
+  string tab_name = 3;
+}

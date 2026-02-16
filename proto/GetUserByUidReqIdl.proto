@@ -1,0 +1,12 @@
+syntax = "proto3";
+package tbclient;
+
+import "CommonReq.proto";
+
+message GetUserByUidReqIdl {
+  message DataReq {
+    CommonReq common    = 1;
+    string    tieba_uid = 2;
+  }
+  DataReq data = 1;
+}
