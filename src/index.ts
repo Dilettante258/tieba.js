@@ -16,6 +16,7 @@ export type {
 	GetPostsParams,
 	GetThreadsParams,
 	GoodThreadParams,
+	HiddenLikeForum,
 	LikeForum,
 	SearchForumResult,
 	SearchPostParams,
@@ -41,12 +42,12 @@ export {
 	getForumDetail,
 	getForumMembers,
 	getForumName,
+	getHiddenLikeForum,
 	getLikeForum,
 	getPanel,
 	getPosts,
 	getProfile,
 	getRawUserPost,
-	getTbs,
 	getThreads,
 	getUserByUid,
 	getUserInfo,
@@ -65,6 +66,7 @@ export {
 	untopThread,
 } from "./api/index.ts";
 export { type ClientOptions, TiebaClient } from "./client.ts";
+export { getClient, initClient } from "./context.ts";
 export { consume, consumeAll, consumeAllSuccess } from "./core/effect.ts";
 export {
 	FetchError,
@@ -74,3 +76,5 @@ export {
 	TiebaError,
 	TiebaServerError,
 } from "./core/errors.ts";
+export { type UserPost, processUserPosts } from "./helpers/cache.ts";
+export { MethodEnum, UserIdResolver } from "./helpers/user-id-resolver.ts";

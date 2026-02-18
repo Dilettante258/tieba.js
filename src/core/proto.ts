@@ -1,5 +1,5 @@
 import { Effect, pipe } from "effect";
-import type { TiebaClient } from "../client.ts";
+import { getClient } from "../context.ts";
 import { TiebaServerError } from "./errors.ts";
 
 interface MessageEncoder<T> {
@@ -28,19 +28,19 @@ export function createProtoApi<
 	endpoint: string;
 	reqCodec: MessageEncoder<Req>;
 	resCodec: MessageDecoder<Res>;
-	buildRequest: (client: TiebaClient, params: Params) => unknown;
+	buildRequest: (params: Params) => unknown;
 	extractResult: (res: Res) => Result;
 }) {
-	return (client: TiebaClient, params: Params) =>
+	return (params: Params) =>
 		pipe(
 			Effect.succeed(
 				config.reqCodec
 					.encode(
-						config.reqCodec.fromPartial(config.buildRequest(client, params)),
+						config.reqCodec.fromPartial(config.buildRequest(params)),
 					)
 					.finish(),
 			),
-			Effect.andThen((buf) => client.postProtobuf(config.endpoint, buf)),
+			Effect.andThen((buf) => getClient().postProtobuf(config.endpoint, buf)),
 			Effect.map((buf) => {
 				const res = config.resCodec.decode(buf);
 				if (res.error?.errorno) {

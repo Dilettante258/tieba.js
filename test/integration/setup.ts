@@ -1,6 +1,7 @@
 import { beforeAll } from "bun:test";
 import { Effect } from "effect";
 import { TiebaClient } from "../../src/client.ts";
+import { initClient } from "../../src/context.ts";
 import { TiebaServerError } from "../../src/core/errors.ts";
 
 /** 全局共享的测试客户端，在 beforeAll 中初始化 */
@@ -13,6 +14,7 @@ beforeAll(() => {
 		process.exit(0);
 	}
 	client = new TiebaClient({ bduss });
+	initClient(client);
 });
 
 /**

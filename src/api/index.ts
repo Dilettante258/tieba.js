@@ -1,5 +1,3 @@
-// 认证
-export { getTbs } from "./auth.ts";
 // 贴吧 API
 export {
 	type ForumMemberData,
@@ -64,11 +62,13 @@ export {
 	followUser,
 	getFans,
 	getFollow,
+	getHiddenLikeForum,
 	getLikeForum,
 	getPanel,
 	getProfile,
 	getUserByUid,
 	getUserInfo,
+	type HiddenLikeForum,
 	type LikeForum,
 	type UserInfo,
 	type UserPanel,

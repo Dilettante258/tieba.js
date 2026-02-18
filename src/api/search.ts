@@ -1,4 +1,4 @@
-import type { TiebaClient } from "../client.ts";
+import { getClient } from "../context.ts";
 import { CLIENT_VERSION, getData, postFormData } from "../core/http.ts";
 
 // ── searchPost ─────────────────────────────────────────────
@@ -26,7 +26,7 @@ export interface SearchPostResult {
 }
 
 /** 搜索吧内帖子。 */
-export function searchPost(_client: TiebaClient, params: SearchPostParams) {
+export function searchPost(params: SearchPostParams) {
 	const qs = new URLSearchParams({
 		_client_version: CLIENT_VERSION,
 		kw: params.fname,
@@ -55,13 +55,10 @@ export interface SearchForumResult {
 }
 
 /** 按关键词搜索贴吧。 */
-export function searchForum(
-	client: TiebaClient,
-	params: { query: string; pn?: number },
-) {
+export function searchForum(params: { query: string; pn?: number }) {
 	return postFormData<SearchForumResult>(
 		"/c/s/search/forum/search",
-		client.packRequest({
+		getClient().packRequest({
 			word: params.query,
 			page: (params.pn || 1).toString(),
 		}),

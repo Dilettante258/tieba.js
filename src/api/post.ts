@@ -1,6 +1,6 @@
 import { Effect, Either, pipe, Schedule } from "effect";
-import type { TiebaClient } from "../client.ts";
-import { type FetchError, TiebaServerError } from "../core/errors.ts";
+import { getClient } from "../context.ts";
+import { TiebaServerError } from "../core/errors.ts";
 import { createFormApi } from "../core/form.ts";
 import {
 	CLIENT_TYPE,
@@ -13,9 +13,10 @@ import { AddPostResIdl } from "../generated/AddPostResIdl.ts";
 import { PbFloorReqIdl } from "../generated/PbFloorReqIdl.ts";
 import { PbFloorResIdl } from "../generated/PbFloorResIdl.ts";
 import { PbPageReqIdl } from "../generated/PbPageReqIdl.ts";
-import { PbPageResIdl } from "../generated/PbPageResIdl.ts";
+import { PbPageResIdl, type PbPageResIdl_DataRes } from "../generated/PbPageResIdl.ts";
 import { UserPostReqIdl } from "../generated/UserPostReqIdl.ts";
 import { UserPostResIdl } from "../generated/UserPostResIdl.ts";
+import { processUserPosts } from "../helpers/cache.ts";
 
 // ── 获取帖子回复 ────────────────────────────────────────────
 
@@ -32,11 +33,8 @@ export interface GetPostsParams {
 
 const MAX_PAGE = 600;
 
-function packPostsProto(
-	client: TiebaClient,
-	params: GetPostsParams,
-): Uint8Array {
-	const data: Record<string, unknown> = {
+function packPostsProto(params: GetPostsParams): Uint8Array {
+	const data: Parameters<typeof PbPageReqIdl.fromPartial>['0']['data'] = {
 		kz: params.tid.toString(),
 		pn: params.page || 1,
 		rn: params.rn || 30,
@@ -49,7 +47,7 @@ function packPostsProto(
 	};
 
 	if (params.withComment) {
-		(data.common as Record<string, unknown>).BDUSS = client.bduss;
+		data.common!.BDUSS = getClient().bduss;
 		data.withFloor = 1;
 		data.floorSortType = params.commentsSortByTime ? 0 : 1;
 		data.floorRn = params.commentRn || 4;
@@ -67,11 +65,11 @@ function parsePostsBody(buffer: Uint8Array) {
 	return res.data;
 }
 
-function getSinglePage(client: TiebaClient, params: GetPostsParams) {
+function getSinglePage(params: GetPostsParams) {
 	const effect = pipe(
-		Effect.succeed(packPostsProto(client, params)),
+		Effect.succeed(packPostsProto(params)),
 		Effect.andThen((buf) =>
-			client.postProtobuf("/c/f/pb/page?cmd=303002", buf),
+			getClient().postProtobuf("/c/f/pb/page?cmd=303002", buf),
 		),
 		Effect.map(parsePostsBody),
 	);
@@ -87,10 +85,39 @@ function getSinglePage(client: TiebaClient, params: GetPostsParams) {
 	return effect;
 }
 
+/**
+ * 并发获取多页结果，容忍单页失败。
+ * 返回所有成功页的 postList / userList 合并结果。
+ */
+function fetchPages(
+	pages: number[],
+	makeParams: (pg: number) => GetPostsParams,
+) {
+	const effects = pages.map((pg) => getSinglePage(makeParams(pg)));
+	return Effect.all(effects, { concurrency: 5, mode: "either" }).pipe(
+		Effect.map((results) => {
+			const postsArr: PbPageResIdl_DataRes["postList"][] = [];
+			const usersArr: PbPageResIdl_DataRes["userList"][] = [];
+			for (const r of results) {
+				if (Either.isRight(r)) {
+					if (r.right?.postList) postsArr.push(r.right.postList);
+					if (r.right?.userList) usersArr.push(r.right.userList);
+				}
+			}
+			return { posts: postsArr.flat(1), users: usersArr.flat(1) };
+		}),
+	);
+}
+
+/**
+ * 获取帖子回复。
+ * - `page: number` — 获取单页
+ * - `page: [from, to]` — 获取指定页码范围（闭区间）
+ * - `page: "ALL"` — 获取全部（先请求第 1 页获取总页数，再并发抓取剩余页）
+ */
 export function getPosts(
-	client: TiebaClient,
 	tid: number,
-	page: number | "ALL",
+	page: number | [number, number] | "ALL",
 	options?: Omit<GetPostsParams, "tid" | "page">,
 ) {
 	const makeParams = (pg: number): GetPostsParams => ({
@@ -99,57 +126,40 @@ export function getPosts(
 		...options,
 	});
 
-	if (page === "ALL") {
-		return Effect.gen(function* () {
-			const page1 = yield* getSinglePage(client, makeParams(1));
-			const totalPage = Math.min(page1?.page?.totalPage || 1, MAX_PAGE);
-
-			let batch = 1;
-			if (totalPage > 30 && totalPage <= 100) batch = 4;
-			if (totalPage > 100) batch = 6;
-			if (totalPage > 300) batch = 8;
-			if (totalPage > 500) batch = 12;
-			const batchSize = Math.ceil(totalPage / batch);
-
-			const allPosts: unknown[] = [];
-			const allUsers: unknown[] = [];
-
-			for (let b = 0; b < batch; b++) {
-				const promises: Effect.Effect<typeof page1, FetchError>[] = [];
-				for (
-					let i = b * batchSize + 2;
-					i <= (b + 1) * batchSize && i <= totalPage;
-					i++
-				) {
-					promises.push(getSinglePage(client, makeParams(i)));
-				}
-
-				const results = yield* Effect.all(promises, {
-					concurrency: 5,
-					mode: "either",
-				});
-				const successResults = results.filter(Either.isRight);
-				for (const item of successResults) {
-					if (item.right?.postList) allPosts.push(...item.right.postList);
-					if (item.right?.userList) allUsers.push(...item.right.userList);
-				}
-
-				if (b < batch - 1) {
-					yield* Effect.sleep(1000);
-				}
-			}
-
-			if (page1?.postList) {
-				(page1.postList as unknown[]).push(...allPosts);
-			}
-			if (page1?.userList) {
-				(page1.userList as unknown[]).push(...allUsers);
-			}
-			return page1;
-		});
+	// 单页直接返回
+	if (typeof page === "number") {
+		return getSinglePage(makeParams(page));
 	}
 
-	return getSinglePage(client, makeParams(page));
+	return Effect.gen(function* () {
+		// 确定首页页码和尾页页码
+		const from = page === "ALL" ? 1 : page[0];
+		const firstResult = yield* getSinglePage(makeParams(from));
+		const lastPage =
+			page === "ALL"
+				? Math.min(firstResult?.page?.totalPage || 1, MAX_PAGE)
+				: page[1];
+
+		if (from >= lastPage) return firstResult;
+
+		// 并发获取剩余页
+		const remaining = Array.from(
+			{ length: lastPage - from },
+			(_, i) => from + 1 + i,
+		);
+		const { posts, users } = yield* fetchPages(
+			remaining,
+			makeParams,
+		);
+
+		if (firstResult?.postList) {
+			firstResult.postList.push(...posts);
+		}
+		if (firstResult?.userList) {
+			firstResult.userList.push(...users);
+		}
+		return firstResult;
+	});
 }
 
 // ── 获取用户发帖 ────────────────────────────────────────────
@@ -158,7 +168,7 @@ const getUserPostSingle = createProtoApi({
 	endpoint: "/c/u/feed/userpost?cmd=303002",
 	reqCodec: UserPostReqIdl,
 	resCodec: UserPostResIdl,
-	buildRequest: (_client, params: { uid: number; pn: number }) => ({
+	buildRequest: (params: { uid: number; pn: number }) => ({
 		data: {
 			needContent: 1,
 			userId: params.uid.toString(),
@@ -169,26 +179,35 @@ const getUserPostSingle = createProtoApi({
 	extractResult: (res) => res.data?.postList ?? [],
 });
 
-export function getRawUserPost(client: TiebaClient, uid: number, pn: number) {
-	return getUserPostSingle(client, { uid, pn });
+/** 获取用户发帖原始 protobuf 数据（不做展平和吧名解析）。 */
+export function getRawUserPost(uid: number, pn: number) {
+	return getUserPostSingle({ uid, pn });
 }
 
+/**
+ * 获取用户发帖并展平为 UserPost[]。
+ * - `param2: number` — 获取单页
+ * - `param2: [from, to]` — 获取指定页码范围（闭区间）
+ * @param needForumName 为 true 时通过 API 解析缺失的吧名（默认 true）
+ */
 export function getUserPost(
-	client: TiebaClient,
 	uid: number,
 	param2: number | [number, number],
+	needForumName = true,
 ) {
-	if (typeof param2 === "number") {
-		return getUserPostSingle(client, { uid, pn: param2 });
-	}
+	const raw =
+		typeof param2 === "number"
+			? getUserPostSingle({ uid, pn: param2 })
+			: Effect.all(
+					Array.from(
+						{ length: param2[1] - param2[0] + 1 },
+						(_, i) => param2[0] + i,
+					).map((page) => getUserPostSingle({ uid, pn: page })),
+				).pipe(Effect.map((posts) => posts.flat()));
 
-	const [start, end] = param2;
-	const effects = Array.from(
-		{ length: end - start + 1 },
-		(_, i) => start + i,
-	).map((page) => getUserPostSingle(client, { uid, pn: page }));
-
-	return Effect.all(effects).pipe(Effect.map((posts) => posts.flat()));
+	return raw.pipe(
+		Effect.andThen((posts) => processUserPosts(posts, needForumName)),
+	);
 }
 
 // ── 获取楼中楼 ────────────────────────────────────────────
@@ -204,7 +223,7 @@ export const getComments = createProtoApi({
 	endpoint: "/c/f/pb/floor?cmd=303002",
 	reqCodec: PbFloorReqIdl,
 	resCodec: PbFloorResIdl,
-	buildRequest: (_client, params: GetCommentsParams) => ({
+	buildRequest: (params: GetCommentsParams) => ({
 		data: {
 			kz: params.tid.toString(),
 			pid: params.pid.toString(),
@@ -233,8 +252,9 @@ export interface AddPostParams {
  * 回复帖子。
  * 使用 protobuf 端点并伪造设备信息（与 aiotieba 相同方式）。
  */
-export function addPost(client: TiebaClient, params: AddPostParams) {
+export function addPost(params: AddPostParams) {
 	return Effect.gen(function* () {
+		const client = getClient();
 		const tbs = yield* client.getTbs();
 		const req = AddPostReqIdl.fromPartial({
 			data: {
@@ -274,7 +294,7 @@ export function addPost(client: TiebaClient, params: AddPostParams) {
 			},
 		});
 		const buf = AddPostReqIdl.encode(req).finish();
-		const resBuf = yield* client.postProtobuf("/c/c/post/add?cmd=309731", buf);
+		const resBuf = yield* getClient().postProtobuf("/c/c/post/add?cmd=309731", buf);
 		const res = AddPostResIdl.decode(resBuf);
 		if (res.error?.errorno) {
 			throw new TiebaServerError(res.error.errorno, res.error.errmsg ?? "");

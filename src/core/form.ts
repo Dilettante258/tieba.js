@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import type { TiebaClient } from "../client.ts";
+import { getClient } from "../context.ts";
 import { TiebaServerError } from "./errors.ts";
 import { postFormData } from "./http.ts";
 
@@ -19,8 +19,9 @@ export function createFormApi<Params, Result = void>(config: {
 	buildParams: (params: Params) => Record<string, string>;
 	extractResult?: (res: FormApiResponse) => Result;
 }) {
-	return (client: TiebaClient, params: Params) =>
+	return (params: Params) =>
 		Effect.gen(function* () {
+			const client = getClient();
 			const tbs = yield* client.getTbs();
 			const formParams = {
 				BDUSS: client.bduss,

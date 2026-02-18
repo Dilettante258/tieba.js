@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { agree } from "../../src/api/interaction.ts";
+import { searchForum, searchPost } from "../../src/api/search.ts";
 import { client, safeRun, TEST_PARAMS } from "./setup.ts";
 
 describe("搜索与互动 APIs", () => {
@@ -11,7 +13,7 @@ describe("搜索与互动 APIs", () => {
 
 	test("searchPost — 返回搜索结果", async () => {
 		const data = await safeRun(
-			client.searchPost({
+			searchPost({
 				fname: TEST_PARAMS.forumName,
 				query: "测试",
 			}),
@@ -22,7 +24,7 @@ describe("搜索与互动 APIs", () => {
 
 	test("searchForum — 返回搜索结果", async () => {
 		const data = await safeRun(
-			client.searchForum(TEST_PARAMS.forumName),
+			searchForum({ query: TEST_PARAMS.forumName }),
 		);
 		if (!data) return;
 		expect(data).toHaveProperty("exact_match");
@@ -32,6 +34,6 @@ describe("搜索与互动 APIs", () => {
 	});
 
 	test("agree — 点赞不抛出异常", async () => {
-		await safeRun(client.agree({ tid: TEST_PARAMS.tid }));
+		await safeRun(agree({ tid: TEST_PARAMS.tid }));
 	});
 });

@@ -1,6 +1,5 @@
 import { Effect, pipe } from "effect";
 import HTMLParser from "node-html-parser";
-import type { TiebaClient } from "../client.ts";
 import { InvalidParamError } from "../core/errors.ts";
 import { createFormApi } from "../core/form.ts";
 import { BASE_URL, CLIENT_TYPE, CLIENT_VERSION } from "../core/http.ts";
@@ -24,7 +23,7 @@ export const getThreads = createProtoApi({
 	endpoint: "/c/f/frs/page?cmd=303002",
 	reqCodec: FrsPageReqIdl,
 	resCodec: FrsPageResIdl,
-	buildRequest: (_client, params: GetThreadsParams) => ({
+	buildRequest: (params: GetThreadsParams) => ({
 		data: {
 			kw: params.fname,
 			pn: params.page || 1,
@@ -47,7 +46,7 @@ export const getForumDetail = createProtoApi({
 	endpoint: "/c/f/forum/getforumdetail?cmd=303021",
 	reqCodec: GetForumDetailReqIdl,
 	resCodec: GetForumDetailResIdl,
-	buildRequest: (_client, forumId: number) => ({
+	buildRequest: (forumId: number) => ({
 		data: {
 			forumId: forumId.toString(),
 			common: { ClientVersion: CLIENT_VERSION },
@@ -58,9 +57,9 @@ export const getForumDetail = createProtoApi({
 
 // ── 获取吧名 ────────────────────────────────────────────────
 
-export function getForumName(client: TiebaClient, forumId: number) {
+export function getForumName(forumId: number) {
 	return pipe(
-		getForumDetail(client, forumId),
+		getForumDetail(forumId),
 		Effect.map((data) => data?.forumInfo?.forumName ?? ""),
 	);
 }

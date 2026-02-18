@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import type { TiebaClient } from "../client.ts";
+import { getClient } from "../context.ts";
 import { TiebaServerError } from "../core/errors.ts";
 import { CLIENT_VERSION, postFormData } from "../core/http.ts";
 
@@ -24,8 +24,9 @@ interface AgreeResponse {
 }
 
 /** 对主题或回复点赞/点踩。 */
-export function agree(client: TiebaClient, params: AgreeParams) {
+export function agree(params: AgreeParams) {
 	return Effect.gen(function* () {
+		const client = getClient();
 		const tbs = yield* client.getTbs();
 		const objType = params.objType ?? (params.pid ? 1 : 3);
 		const formData = {
@@ -50,6 +51,6 @@ export function agree(client: TiebaClient, params: AgreeParams) {
 }
 
 /** 对主题或回复点踩。是 agree() 的便捷封装。 */
-export function disagree(client: TiebaClient, tid: number, pid?: number) {
-	return agree(client, { tid, pid, isDisagree: true });
+export function disagree(tid: number, pid?: number) {
+	return agree({ tid, pid, isDisagree: true });
 }

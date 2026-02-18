@@ -1,11 +1,18 @@
 import { describe, expect, test } from "bun:test";
 import { Effect } from "effect";
-import { client, safeRun, TEST_PARAMS } from "./setup.ts";
+import {
+	getThreads,
+	getForumDetail,
+	getForumName,
+	getForumMembers,
+	signForum,
+} from "../../src/api/forum.ts";
+import { safeRun, TEST_PARAMS } from "./setup.ts";
 
 describe("Forum APIs", () => {
 	test("getThreads — 返回主题帖列表", async () => {
 		const data = await safeRun(
-			client.getThreads({ fname: TEST_PARAMS.forumName, page: 1 }),
+			getThreads({ fname: TEST_PARAMS.forumName, page: 1 }),
 		);
 		if (!data) return;
 		expect(data.threadList).toBeInstanceOf(Array);
@@ -14,7 +21,7 @@ describe("Forum APIs", () => {
 
 	test("getForumDetail — 返回吧信息", async () => {
 		const data = await safeRun(
-			client.getForumDetail(TEST_PARAMS.forumId),
+			getForumDetail(TEST_PARAMS.forumId),
 		);
 		if (!data) return;
 		expect(data.forumInfo).toBeDefined();
@@ -24,7 +31,7 @@ describe("Forum APIs", () => {
 
 	test("getForumName — 返回吧名字符串", async () => {
 		const data = await safeRun(
-			client.getForumName(TEST_PARAMS.forumId),
+			getForumName(TEST_PARAMS.forumId),
 		);
 		if (data === null) return;
 		expect(typeof data).toBe("string");
@@ -33,7 +40,7 @@ describe("Forum APIs", () => {
 
 	test("getForumMembers — 返回成员列表和分页", async () => {
 		const data = await Effect.runPromise(
-			client.getForumMembers(TEST_PARAMS.forumMemberName, 1),
+			getForumMembers(TEST_PARAMS.forumMemberName, 1),
 		);
 		expect(data.data).toBeInstanceOf(Array);
 		expect(data.data.length).toBeGreaterThan(0);
@@ -43,6 +50,6 @@ describe("Forum APIs", () => {
 
 	test("signForum — 签到不抛出异常", async () => {
 		// 成功返回 undefined，已签到则触发 TiebaServerError（被 safeRun 捕获）
-		await safeRun(client.signForum(TEST_PARAMS.forumName));
+		await safeRun(signForum({ fname: TEST_PARAMS.forumName }));
 	});
 });

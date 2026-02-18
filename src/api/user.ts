@@ -1,5 +1,5 @@
 import { Effect, Either, pipe } from "effect";
-import type { TiebaClient } from "../client.ts";
+import { getClient } from "../context.ts";
 import type { FetchError } from "../core/errors.ts";
 import { createFormApi } from "../core/form.ts";
 import {
@@ -17,20 +17,30 @@ import { ProfileResIdl } from "../generated/ProfileResIdl.ts";
 // ── 获取用户信息 ─────────────────────────────────────────────
 
 export interface UserInfo {
-	no: number;
-	id: string;
 	name: string;
 	name_show: string;
+	show_nickname: string;
 	portrait: string;
-	has_concerned: number;
-	sex: string;
-	is_brand_user: number;
-	fans_num: string;
+	id: number;
+	is_online: boolean;
+	is_prison: boolean;
+	is_private: boolean;
+	is_verify: boolean;
 }
 
-export function getUserInfo(_client: TiebaClient, username: string) {
-	return getData<UserInfo>(
-		`/i/sys/user_json?un=${encodeURIComponent(username)}&ie=utf-8`,
+interface UserInfoResponse {
+	tbs: string;
+	raw_name: string;
+	id: number;
+	creator: UserInfo;
+}
+
+export function getUserInfo(username: string) {
+	return pipe(
+		getData<UserInfoResponse>(
+			`/i/sys/user_json?un=${encodeURIComponent(username)}&ie=utf-8`,
+		),
+		Effect.andThen((res) => res.creator),
 	);
 }
 
@@ -40,7 +50,7 @@ export const getUserByUid = createProtoApi({
 	endpoint: "/c/u/user/getUserByTiebaUid?cmd=309702",
 	reqCodec: GetUserByUidReqIdl,
 	resCodec: GetUserByUidResIdl,
-	buildRequest: (_client, uid: number) => ({
+	buildRequest: (uid: number) => ({
 		data: {
 			tiebaUid: uid.toString(),
 			common: {
@@ -58,8 +68,8 @@ export const getProfile = createProtoApi({
 	endpoint: "/c/u/user/profile?cmd=303012",
 	reqCodec: ProfileReqIdl,
 	resCodec: ProfileResIdl,
-	buildRequest: (_client, id: number | string) => {
-		const data: Record<string, unknown> = {
+	buildRequest: (id: number | string) => {
+		const data: Parameters<typeof ProfileReqIdl.fromPartial>['0']['data'] = {
 			needPostCount: 1,
 			pn: 1,
 			common: {
@@ -81,6 +91,7 @@ export const getProfile = createProtoApi({
 
 export interface UserPanel {
 	tb_vip: boolean;
+	followed_count: number;
 	vipInfo?: {
 		v_level?: string;
 		v_status?: string;
@@ -88,15 +99,10 @@ export interface UserPanel {
 	};
 	honor?: {
 		manager?: {
-			id: string;
-			name: string;
+			manager?: { count: number; forum_list: string[] };
+			assist?: { count: number; forum_list: string[] };
 		};
-		grade?: Record<
-			string,
-			{
-				forum_list: string[];
-			}
-		>;
+		grade?: Record<string, { forum_list: string[] }>;
 	};
 }
 
@@ -108,7 +114,9 @@ export function getPanel(un: string) {
 			),
 		),
 		Effect.andThen((res) => Effect.tryPromise(() => res.json())),
-		Effect.andThen((res) => Effect.succeed(res as UserPanel)),
+		Effect.andThen(
+			(res: { data: UserPanel }) => Effect.succeed(res.data),
+		),
 	);
 }
 
@@ -125,51 +133,60 @@ export interface FanRes {
 	}>;
 }
 
+/**
+ * 获取粉丝列表。
+ * - `page: number` — 获取单页
+ * - `page: [from, to]` — 获取指定页码范围（闭区间）
+ * - `page: "ALL"` — 获取全部（先请求第 1 页获取总页数，再并发抓取剩余页）
+ */
 export function getFans(
-	client: TiebaClient,
 	id: number,
-	page: number | "needAll" = 1,
+	page: number | [number, number] | "ALL" = 1,
 ) {
-	return Effect.gen(function* () {
-		const params = {
-			uid: id.toString(),
-			page: Number.isInteger(page) ? (page as number).toString() : "1",
-		};
-		let res = yield* postFormData<FanRes>(
+	const client = getClient();
+	const fetchPage = (pg: number) =>
+		postFormData<FanRes>(
 			"/c/u/fans/page",
-			client.packRequest(params),
+			client.packRequest({ uid: id.toString(), page: pg.toString() }),
 		);
 
-		if (page === "needAll" && res.page.total_page !== "1") {
-			const promises: Array<Effect.Effect<FanRes, FetchError>> = [];
-			for (let i = 2; i <= Number(res.page.total_page); i++) {
-				params.page = i.toString();
-				promises.push(
-					postFormData<FanRes>("/c/u/fans/page", client.packRequest(params)),
-				);
+	if (typeof page === "number") {
+		return fetchPage(page);
+	}
+
+	return Effect.gen(function* () {
+		const from = page === "ALL" ? 1 : page[0];
+		const firstRes = yield* fetchPage(from);
+		const lastPage =
+			page === "ALL" ? Number(firstRes.page.total_page) : page[1];
+
+		if (from >= lastPage) return firstRes;
+
+		const remaining = Array.from(
+			{ length: lastPage - from },
+			(_, i) => from + 1 + i,
+		);
+		const results = yield* Effect.all(
+			remaining.map((pg) => fetchPage(pg)),
+			{ concurrency: 5, mode: "either" },
+		);
+
+		const extraUsers = results.filter(Either.isRight).flatMap((r) => {
+			const users = r.right.user_list ?? [];
+			// 清理 bazhu_grade 异常值（可能为字符串或数组而非对象）
+			for (const u of users) {
+				if (
+					typeof u.bazhu_grade === "string" ||
+					Array.isArray(u.bazhu_grade)
+				) {
+					u.bazhu_grade = undefined;
+				}
 			}
-			const results = yield* Effect.all(promises, {
-				concurrency: 5,
-				mode: "either",
-			});
-			const successResults = results.filter(Either.isRight);
+			return users;
+		});
 
-			res = Object.assign(res, {
-				user_list: [
-					...res.user_list,
-					...successResults.map((i) => i.right.user_list),
-				],
-			});
-
-			res.user_list
-				.filter(
-					(user) =>
-						typeof user.bazhu_grade === "string" ||
-						Array.isArray(user.bazhu_grade),
-				)
-				.map((user) => Object.assign(user, { bazhu_grade: undefined }));
-		}
-		return res;
+		firstRes.user_list = [...firstRes.user_list, ...extraUsers];
+		return firstRes;
 	});
 }
 
@@ -187,62 +204,79 @@ export interface FollowRes {
 	}>;
 }
 
+/**
+ * 获取关注列表。
+ * - `page: number` — 获取单页
+ * - `page: [from, to]` — 获取指定页码范围（闭区间）
+ * - `page: "ALL"` — 获取全部（根据 total_follow_num 推算总页数，每页 20 条）
+ */
 export function getFollow(
-	client: TiebaClient,
 	id: number,
-	page: number | "needAll" = 1,
+	page: number | [number, number] | "ALL" = 1,
 ) {
-	return Effect.gen(function* () {
-		const params = {
-			uid: id.toString(),
-			page: Number.isInteger(page) ? (page as number).toString() : "1",
-		};
-		let res = yield* postFormData<FollowRes>(
+	const client = getClient();
+	const fetchPage = (pg: number) =>
+		postFormData<FollowRes>(
 			"/c/u/follow/followList",
-			client.packRequest(params),
+			client.packRequest({ uid: id.toString(), page: pg.toString() }),
 		);
 
-		if (page === "needAll" && res.has_more === 1) {
-			const promises: Array<Effect.Effect<FollowRes, FetchError>> = [];
-			for (let i = 2; i <= res.total_follow_num / 20 + 1; i++) {
-				params.page = i.toString();
-				promises.push(
-					postFormData<FollowRes>(
-						"/c/u/follow/followList",
-						client.packRequest(params),
-					),
-				);
-			}
-			const results = yield* Effect.all(promises, { concurrency: 5 });
+	if (typeof page === "number") {
+		return fetchPage(page);
+	}
 
-			res = Object.assign(res, {
-				follow_list: [...res.follow_list, ...results.map((i) => i.follow_list)],
-			});
-		}
-		return res;
+	return Effect.gen(function* () {
+		const from = page === "ALL" ? 1 : page[0];
+		const firstRes = yield* fetchPage(from);
+		const lastPage =
+			page === "ALL"
+				? Math.ceil(firstRes.total_follow_num / 20)
+				: page[1];
+
+		if (from >= lastPage) return firstRes;
+
+		const remaining = Array.from(
+			{ length: lastPage - from },
+			(_, i) => from + 1 + i,
+		);
+		const results = yield* Effect.all(
+			remaining.map((pg) => fetchPage(pg)),
+			{ concurrency: 5, mode: "either" },
+		);
+
+		const extraFollows = results
+			.filter(Either.isRight)
+			.flatMap((r) => r.right.follow_list ?? []);
+
+		firstRes.follow_list = [...firstRes.follow_list, ...extraFollows];
+		return firstRes;
 	});
 }
 
 // ── 获取关注的贴吧 ────────────────────────────────────────
 
 export interface LikeForum {
-	forum_id: string;
-	forum_name: string;
+	id: string;
+	name: string;
+	favo_type: string;
 	level_id: string;
 	level_name: string;
 	cur_score: string;
-	is_sign: string;
+	levelup_score: string;
+	is_forbidden: string;
+	avatar: string;
+	slogan: string;
 }
 
 export function getLikeForum(
-	client: TiebaClient,
 	id: number,
-	page: number | "needAll" = 1,
+	page: number | "ALL" = 1,
 ): Effect.Effect<LikeForum[], FetchError> {
+	const client = getClient();
 	return Effect.gen(function* () {
 		const params = {
 			friend_uid: id.toString(),
-			page_no: Number.isInteger(page) ? (page as number).toString() : "1",
+			page_no: (typeof page === "number" ? page : 1).toString(),
 			page_size: "400",
 		};
 		const res = yield* postFormData<{
@@ -256,6 +290,35 @@ export function getLikeForum(
 			return res.forum_list["non-gconforum"]?.concat(res.forum_list.gconforum);
 		}
 		return res?.forum_list ? res.forum_list["non-gconforum"] : [];
+	});
+}
+
+/** 用户隐藏关注贴吧时，从 profile 和 panel 中恢复部分关注信息 */
+export interface HiddenLikeForum {
+	/** 按吧内等级分组的贴吧列表 */
+	grade: Record<string, { forum_list: string[] }>;
+	/** 不在等级列表中的其他关注贴吧名 */
+	plain: string[];
+}
+
+/** 当用户隐藏关注贴吧时，通过 profile + panel 获取部分关注信息 */
+export function getHiddenLikeForum(id: number) {
+	return Effect.gen(function* () {
+		const profile = yield* getProfile(id);
+		const name = profile?.user?.name ?? "";
+		const panel = yield* getPanel(name);
+		// profile 中的关注贴吧名
+		const profileForums = (profile?.user?.likeForum ?? []).map(
+			(f) => f.forumName,
+		);
+		// panel 中按等级分组的贴吧名
+		const gradeForums = Object.values(panel.honor?.grade ?? {}).flatMap(
+			(v) => v.forum_list,
+		);
+		return {
+			grade: panel.honor?.grade ?? {},
+			plain: profileForums.filter((name) => !gradeForums.includes(name)),
+		} satisfies HiddenLikeForum;
 	});
 }
 
