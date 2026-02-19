@@ -155,10 +155,19 @@ export function getFans(
 	}
 
 	return Effect.gen(function* () {
-		const from = page === "ALL" ? 1 : page[0];
+		const from = page === "ALL" ? 1 : Math.max(1, page[0]);
+		const requestedLastPage = page === "ALL"
+			? Number.POSITIVE_INFINITY
+			: Math.max(from, page[1]);
 		const firstRes = yield* fetchPage(from);
+		const totalPage = Math.max(1, Number(firstRes.page?.total_page ?? 1) || 1);
 		const lastPage =
-			page === "ALL" ? Number(firstRes.page.total_page) : page[1];
+			page === "ALL" ? totalPage : Math.min(requestedLastPage, totalPage);
+
+		if (page !== "ALL" && from > totalPage) {
+			firstRes.user_list = [];
+			return firstRes;
+		}
 
 		if (from >= lastPage) return firstRes;
 
@@ -226,12 +235,22 @@ export function getFollow(
 	}
 
 	return Effect.gen(function* () {
-		const from = page === "ALL" ? 1 : page[0];
+		const from = page === "ALL" ? 1 : Math.max(1, page[0]);
+		const requestedLastPage = page === "ALL"
+			? Number.POSITIVE_INFINITY
+			: Math.max(from, page[1]);
 		const firstRes = yield* fetchPage(from);
+		const totalPage = Math.max(1, Math.ceil((firstRes.total_follow_num || 0) / 20));
 		const lastPage =
 			page === "ALL"
-				? Math.ceil(firstRes.total_follow_num / 20)
-				: page[1];
+				? totalPage
+				: Math.min(requestedLastPage, totalPage);
+
+		if (page !== "ALL" && from > totalPage) {
+			firstRes.follow_list = [];
+			firstRes.has_more = 0;
+			return firstRes;
+		}
 
 		if (from >= lastPage) return firstRes;
 

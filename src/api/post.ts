@@ -132,13 +132,26 @@ export function getPosts(
 	}
 
 	return Effect.gen(function* () {
-		// 确定首页页码和尾页页码
-		const from = page === "ALL" ? 1 : page[0];
+		// 先抓起始页，再根据真实总页数裁剪请求范围，避免越界页导致重复内容。
+		const from = page === "ALL" ? 1 : Math.max(1, page[0]);
+		const requestedLastPage = page === "ALL"
+			? MAX_PAGE
+			: Math.max(from, page[1]);
 		const firstResult = yield* getSinglePage(makeParams(from));
+		const totalPage = Math.max(
+			1,
+			Math.min(firstResult?.page?.totalPage || 1, MAX_PAGE),
+		);
 		const lastPage =
 			page === "ALL"
-				? Math.min(firstResult?.page?.totalPage || 1, MAX_PAGE)
-				: page[1];
+				? totalPage
+				: Math.min(requestedLastPage, totalPage);
+
+		if (page !== "ALL" && from > totalPage) {
+			if (firstResult?.postList) firstResult.postList = [];
+			if (firstResult?.userList) firstResult.userList = [];
+			return firstResult;
+		}
 
 		if (from >= lastPage) return firstResult;
 
