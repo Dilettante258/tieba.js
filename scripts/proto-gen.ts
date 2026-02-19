@@ -1,5 +1,5 @@
 /**
- * Proto code generation script for @tieba/sdk.
+ * Proto code generation script for tieba.js.
  * Uses ts-proto via protoc to generate TypeScript from .proto files.
  *
  * All proto files are in a single `proto/` directory at the SDK root,

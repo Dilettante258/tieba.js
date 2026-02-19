@@ -1,5 +1,5 @@
 {
-	"name": "@tieba/sdk",
+	"name": "tieba.js",
 	"version": "3.0.0",
 	"type": "module",
 	"main": "dist/index.js",

@@ -15,7 +15,7 @@ pnpm add tieba.js
 bun add tieba.js
 ```
 
-> 当前仓库内工作区包名为 `@tieba/sdk`，对外发布包名为 `tieba.js`。
+> 当前仓库内工作区包名与 npm 发布包名一致，均为 `tieba.js`。
 
 ## 快速开始
 
