@@ -68,6 +68,7 @@ export {
 export { type ClientOptions, TiebaClient } from "./client.ts";
 export { getClient, initClient } from "./context.ts";
 export { consume, consumeAll, consumeAllSuccess } from "./core/effect.ts";
+export { resetHttpDispatcher, setHttpDispatcher } from "./core/http.ts";
 export {
 	FetchError,
 	InvalidParamError,

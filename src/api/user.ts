@@ -108,15 +108,10 @@ export interface UserPanel {
 
 export function getPanel(un: string) {
 	return pipe(
-		Effect.tryPromise(() =>
-			fetch(
-				`http://tiebac.baidu.com/home/get/panel?un=${encodeURIComponent(un)}`,
-			),
+		getData<{ data: UserPanel }>(
+			`/home/get/panel?un=${encodeURIComponent(un)}`,
 		),
-		Effect.andThen((res) => Effect.tryPromise(() => res.json())),
-		Effect.andThen(
-			(res: { data: UserPanel }) => Effect.succeed(res.data),
-		),
+		Effect.map((res) => res.data),
 	);
 }
 

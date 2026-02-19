@@ -2,7 +2,12 @@ import { Effect, pipe } from "effect";
 import HTMLParser from "node-html-parser";
 import { InvalidParamError } from "../core/errors.ts";
 import { createFormApi } from "../core/form.ts";
-import { BASE_URL, CLIENT_TYPE, CLIENT_VERSION } from "../core/http.ts";
+import {
+	BASE_URL,
+	CLIENT_TYPE,
+	CLIENT_VERSION,
+	requestWithRetry,
+} from "../core/http.ts";
 import { createProtoApi } from "../core/proto.ts";
 import { FrsPageReqIdl } from "../generated/FrsPageReqIdl.ts";
 import { FrsPageResIdl } from "../generated/FrsPageResIdl.ts";
@@ -110,13 +115,14 @@ export function getForumMembers(forumName: string, page: number) {
 		url.searchParams.append("pn", page.toString());
 		url.searchParams.append("ie", "utf-8");
 
-		const buf = yield* pipe(
-			Effect.tryPromise(() => fetch(url.toString())),
-			Effect.andThen((res) => Effect.tryPromise(() => res.arrayBuffer())),
+		const buf = yield* requestWithRetry(
+			url.toString(),
+			{ method: "GET" },
+			"arrayBuffer",
 		);
 
 		const decoder = new TextDecoder("gbk");
-		const resText = decoder.decode(buf);
+		const resText = decoder.decode(buf as ArrayBuffer);
 		const doc = HTMLParser.parse(resText);
 		const data = doc.querySelectorAll("a.user_name").map((element) => ({
 			portrait: element.attributes.href.slice(14),

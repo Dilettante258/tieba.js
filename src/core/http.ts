@@ -1,5 +1,5 @@
 import { Effect, pipe, Schedule } from "effect";
-import { type Dispatcher, FormData, request } from "undici";
+import { Agent, type Dispatcher, FormData, request } from "undici";
 import { FetchError } from "./errors.ts";
 
 export const BASE_URL = "http://tiebac.baidu.com";
@@ -8,45 +8,73 @@ export const CLIENT_VERSION = "12.64.1.1";
 export const CLIENT_VERSION_OLD = "8.9.8.5";
 export const CLIENT_TYPE = 2;
 
+type RequestOptions = NonNullable<Parameters<typeof request>[1]>;
+type ResponseBodyType = "json" | "arrayBuffer" | "text";
+
+const defaultRequestOptions: RequestOptions = { method: "GET" };
+
+/**
+ * SDK 默认共享连接池：
+ * - 复用 keep-alive 连接，减少 TLS/TCP 建连开销
+ * - 避免每次请求走全局默认 dispatcher，便于统一调优
+ */
+const defaultAgent = new Agent({
+	connections: 32,
+	pipelining: 1,
+	connectTimeout: 10_000,
+	headersTimeout: 30_000,
+	bodyTimeout: 30_000,
+	keepAliveTimeout: 10_000,
+	keepAliveMaxTimeout: 60_000,
+	autoSelectFamily: true,
+	autoSelectFamilyAttemptTimeout: 250,
+});
+
+let sharedDispatcher: Dispatcher = defaultAgent;
+
+/** 允许调用方注入自定义 dispatcher（例如 ProxyAgent 或限流 Agent）。 */
+export function setHttpDispatcher(dispatcher: Dispatcher): void {
+	sharedDispatcher = dispatcher;
+}
+
+/** 重置为 SDK 默认共享 Agent。 */
+export function resetHttpDispatcher(): void {
+	sharedDispatcher = defaultAgent;
+}
+
+function withDispatcher(options: RequestOptions): RequestOptions {
+	if (options.dispatcher) return options;
+	return { ...options, dispatcher: sharedDispatcher };
+}
+
 /**
  * 发起 HTTP 请求，失败时指数退避重试。
  */
 export function requestWithRetry(
 	url: string,
-	requestOptions: Parameters<typeof request>[1] = { method: "GET" },
-	getBody: keyof Dispatcher.BodyMixin = "arrayBuffer",
+	requestOptions: RequestOptions = defaultRequestOptions,
+	getBody: ResponseBodyType = "arrayBuffer",
 	retries = 3,
 	delay = 1000,
 ) {
-	const urlObj = new URL(url, url.startsWith("http") ? undefined : BASE_URL);
+	const urlObj = new URL(url, url[0] === 'h' ? undefined : BASE_URL);
 	return Effect.tryPromise({
-		try: () =>
-			request(urlObj, requestOptions).then((res) => {
-				if (res.statusCode >= 400) {
-					return new FetchError(res.statusCode.toString());
-				}
-				return res.body;
-			}),
-		catch: (unknown) => Effect.fail(unknown),
-	}).pipe(
-		Effect.andThen(async (body) => {
-			if (!(body instanceof FetchError)) {
-				switch (getBody) {
-					case "json":
-						return (await body.json()) as unknown;
-					case "arrayBuffer":
-						return (await body.arrayBuffer()) as ArrayBuffer;
-					default:
-						return (await body.text()) as string;
-				}
+		try: async () => {
+			const res = await request(urlObj, withDispatcher(requestOptions));
+			if (res.statusCode >= 400) {
+				// Undici 建议消费或取消 body，以便连接尽快回收到池中。
+				await res.body.dump().catch(() => undefined);
+				throw new FetchError(`${res.statusCode} ${res.statusText}`.trim());
 			}
-			return body;
-		}),
+			return res.body[getBody]();
+		},
+		catch: (error) =>
+			error instanceof FetchError ? error : new FetchError(error),
+	}).pipe(
 		Effect.retry({
 			schedule: Schedule.exponential(delay),
 			times: retries,
 		}),
-		Effect.catchAll((error) => Effect.fail(new FetchError(error))),
 	);
 }
 
@@ -55,7 +83,7 @@ export function requestWithRetry(
  */
 export function getData<T>(
 	url: string,
-	requestOptions: Parameters<typeof request>[1] = { method: "GET" },
+	requestOptions: RequestOptions = defaultRequestOptions,
 ): Effect.Effect<T, FetchError> {
 	return requestWithRetry(url, requestOptions, "json") as Effect.Effect<
 		T,
