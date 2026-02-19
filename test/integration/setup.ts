@@ -1,4 +1,4 @@
-import { beforeAll } from "bun:test";
+import { beforeAll, expect } from "bun:test";
 import { Effect } from "effect";
 import { TiebaClient } from "../../src/client.ts";
 import { initClient } from "../../src/context.ts";
@@ -8,11 +8,8 @@ import { TiebaServerError } from "../../src/core/errors.ts";
 export let client: TiebaClient;
 
 beforeAll(() => {
-	const bduss = process.env.BDUSS;
-	if (!bduss) {
-		console.log("BDUSS 未设置，跳过集成测试");
-		process.exit(0);
-	}
+	const bduss = process.env.BDUSS!;
+	expect(bduss).toBeDefined();
 	client = new TiebaClient({ bduss });
 	initClient(client);
 });

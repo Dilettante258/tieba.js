@@ -23,7 +23,14 @@ import { processUserPosts } from "../helpers/cache.ts";
 export interface GetPostsParams {
 	tid: number;
 	page?: number;
+	/** 每页返回楼层数，贴吧接口上限 30 */
 	rn?: number;
+	/**
+	 * 排序类型：
+	 * - 1：时间倒序
+	 * - 2：热门排序
+	 * - 3 及以上：时间正序
+	 */
 	sort?: number;
 	onlyThreadAuthor?: boolean;
 	withComment?: boolean;
@@ -34,10 +41,14 @@ export interface GetPostsParams {
 const MAX_PAGE = 600;
 
 function packPostsProto(params: GetPostsParams): Uint8Array {
+	const rn = Math.min(Math.max(params.rn || 30, 1), 30);
+
 	const data: Parameters<typeof PbPageReqIdl.fromPartial>['0']['data'] = {
 		kz: params.tid.toString(),
 		pn: params.page || 1,
-		rn: params.rn || 30,
+		// 单页最大 30
+		rn,
+		// 1 时间倒序，2 热门排序，3 及以上时间正序
 		r: params.sort || 3,
 		lz: params.onlyThreadAuthor ? 1 : 0,
 		common: {

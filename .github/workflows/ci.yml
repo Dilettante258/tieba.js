@@ -5,6 +5,7 @@ on:
     branches: [v3]
   pull_request:
     branches: [v3]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -23,3 +24,6 @@ jobs:
 
       - name: Unit Tests
         run: bun run test
+
+      - name: Build
+        run: bun run build

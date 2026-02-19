@@ -14,7 +14,13 @@ import { GetForumDetailResIdl } from "../generated/GetForumDetailResIdl.ts";
 export interface GetThreadsParams {
 	fname: string;
 	page?: number;
+	/** 每页返回帖子数量需求（贴吧接口会映射到 rnNeed，范围 30~100） */
 	rn?: number;
+	/**
+	 * 排序类型：
+	 * - 有热门分区：0/34=热门，1=发帖时间，2=关注的人，>=5=回复时间
+	 * - 无热门分区：0=回复时间，1=发帖时间，2=关注的人，>=3=回复时间
+	 */
 	sort?: number;
 	onlyGood?: boolean;
 }
@@ -23,20 +29,28 @@ export const getThreads = createProtoApi({
 	endpoint: "/c/f/frs/page?cmd=303002",
 	reqCodec: FrsPageReqIdl,
 	resCodec: FrsPageResIdl,
-	buildRequest: (params: GetThreadsParams) => ({
-		data: {
-			kw: params.fname,
-			pn: params.page || 1,
-			rn: 105,
-			rnNeed: params.rn ? Math.max(params.rn, 30) : 30,
-			isGood: params.onlyGood ? 1 : 0,
-			sortType: params.sort || 1,
-			common: {
-				ClientType: CLIENT_TYPE,
-				ClientVersion: CLIENT_VERSION,
+	buildRequest: (params: GetThreadsParams) => {
+		// 贴吧 frs 请求固定使用 105，实际返回量由 rnNeed 决定
+		const rnNeed = params.rn
+			? Math.min(Math.max(params.rn, 30), 100)
+			: 30;
+
+		return {
+			data: {
+				kw: params.fname,
+				pn: params.page || 1,
+				rn: 105,
+				// rnNeed 最大 100，最小 30
+				rnNeed,
+				isGood: params.onlyGood ? 1 : 0,
+				sortType: params.sort || 1,
+				common: {
+					ClientType: CLIENT_TYPE,
+					ClientVersion: CLIENT_VERSION,
+				},
 			},
-		},
-	}),
+		};
+	},
 	extractResult: (res) => res.data,
 });
 
