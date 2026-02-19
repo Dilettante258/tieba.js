@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
@@ -33,6 +33,26 @@ jobs:
 
       - name: Build
         run: bun run build
+
+      - name: Pack npm tarball
+        run: |
+          mkdir -p artifacts
+          npm pack --pack-destination artifacts
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-package-${{ github.ref_name || github.sha }}
+          path: artifacts/*.tgz
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish GitHub release asset
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*.tgz
+          generate_release_notes: true
 
       - name: Publish to npm
         run: npm publish --provenance --access public
