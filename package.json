@@ -2,6 +2,22 @@
 	"name": "tieba.js",
 	"version": "3.0.0",
 	"type": "module",
+	"author": "Dilettante258",
+	"license": "ISC",
+	"keywords": [
+		"tieba",
+		"protobuf",
+		"node.js",
+		"baidu"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Dilettante258/tieba.js"
+	},
+	"homepage": "http://sdk.eztb.org/",
+	"bugs": {
+		"url": "https://github.com/Dilettante258/tieba.js/issues"
+	},
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"exports": {
