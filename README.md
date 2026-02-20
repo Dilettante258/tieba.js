@@ -77,6 +77,20 @@ console.log(posts);
 
 > 关于浏览器：SDK 当前默认基于 Undici 请求链路，主目标是服务端运行时（Node/Bun）。如需浏览器场景，建议通过你自己的后端 API 转发调用。
 
+## Cloudflare Worker 兼容说明
+
+`tieba.js` 发布包内置了 `dist/shims/undici.js`，用于 Cloudflare Worker 等非 Node 运行时的打包替换。
+
+原因是 `undici` 当前主要面向 Node 运行时，且存在 CJS/Node 依赖路径；在 Worker 环境直接打包或运行时，可能因为 Node 专属能力缺失而失败。
+
+Worker 构建时建议将 `undici` 别名到该 shim，例如：
+
+```bash
+esbuild ... --alias:undici=./node_modules/tieba.js/dist/shims/undici.js
+```
+
+Node/Bun 场景不需要此别名，默认继续使用 `undici` 即可。
+
 ## 错误处理
 
 SDK 统一抛出 `TiebaError` 体系，常见包括：

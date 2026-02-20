@@ -48,6 +48,19 @@ function withDispatcher(options: RequestOptions): RequestOptions {
 }
 
 /**
+ * 贴吧 protobuf 接口对 multipart 里的 filename 很敏感：
+ * - 默认 Blob 文件名为 "blob"，服务端可能返回错误码 3。
+ * - 显式设为 "file" 可稳定拿到正确结果。
+ */
+export const PROTO_MULTIPART_FILENAME = "file";
+
+export function buildProtoMultipartFormData(buffer: Uint8Array): FormData {
+	const data = new FormData();
+	data.set("data", new Blob([Buffer.from(buffer)]), PROTO_MULTIPART_FILENAME);
+	return data;
+}
+
+/**
  * 发起 HTTP 请求，失败时指数退避重试。
  */
 export function requestWithRetry(
@@ -116,12 +129,7 @@ export function postFormData<T>(
  */
 export function postProtobuf(url: string, buffer: Uint8Array) {
 	return pipe(
-		new Blob([Buffer.from(buffer)]),
-		(blob) => {
-			const data = new FormData();
-			data.set("data", blob);
-			return data;
-		},
+		buildProtoMultipartFormData(buffer),
 		(data) =>
 			requestWithRetry(
 				BASE_URL + url,

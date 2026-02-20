@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <explanation> */
 import { describe, expect, test } from "bun:test";
 import { Effect } from "effect";
 import {
@@ -11,10 +12,9 @@ import { safeRun, TEST_PARAMS } from "./setup.ts";
 
 describe("Forum APIs", () => {
 	test("getThreads — 返回主题帖列表", async () => {
-		const data = await safeRun(
+		const data = (await safeRun(
 			getThreads({ fname: TEST_PARAMS.forumName, page: 1 }),
-		);
-		if (!data) return;
+		))!;
 		expect(data.threadList).toBeInstanceOf(Array);
 		expect(data.threadList.length).toBeGreaterThan(0);
 	});
