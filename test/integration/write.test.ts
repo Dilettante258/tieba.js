@@ -23,9 +23,7 @@ describe("搜索与互动 APIs", () => {
 	});
 
 	test("searchForum — 返回搜索结果", async () => {
-		const data = await safeRun(
-			searchForum({ query: TEST_PARAMS.forumName }),
-		);
+		const data = await safeRun(searchForum({ query: TEST_PARAMS.forumName }));
 		if (!data) return;
 		expect(data).toHaveProperty("exact_match");
 		if (data.exact_match) {

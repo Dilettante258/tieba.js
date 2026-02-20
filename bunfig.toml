@@ -1,2 +1,5 @@
+[install]
+registry = "https://mirrors.huaweicloud.com/repository/npm/"
+
 [test.env]
 file = "../../.env"

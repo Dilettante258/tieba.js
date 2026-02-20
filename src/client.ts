@@ -35,7 +35,7 @@ export class TiebaClient {
 	readonly options: ClientOptions;
 	private _tbs?: string;
 
-	constructor(config: { bduss: string; options?: Partial<ClientOptions>; }) {
+	constructor(config: { bduss: string; options?: Partial<ClientOptions> }) {
 		this.bduss = config.bduss;
 		this.options = { ...defaultOptions, ...config.options };
 	}
@@ -56,7 +56,10 @@ export class TiebaClient {
 			),
 			Effect.map((res) => {
 				if (Number(res.error_code) !== 0) {
-					throw new TiebaServerError(Number(res.error_code), res.error_msg ?? "");
+					throw new TiebaServerError(
+						Number(res.error_code),
+						res.error_msg ?? "",
+					);
 				}
 				const tbs = res.anti?.tbs ?? "";
 				self._tbs = tbs;

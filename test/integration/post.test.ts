@@ -51,17 +51,13 @@ describe("Post APIs", () => {
 	});
 
 	test("getUserPost — 返回用户帖子数组", async () => {
-		const data = await safeRun(
-			getUserPost(TEST_PARAMS.userId, 1),
-		);
+		const data = await safeRun(getUserPost(TEST_PARAMS.userId, 1));
 		if (!data) return;
 		expect(data).toBeInstanceOf(Array);
 	});
 
 	test("getRawUserPost — 返回原始用户帖子数组", async () => {
-		const data = await safeRun(
-			getRawUserPost(TEST_PARAMS.userId, 1),
-		);
+		const data = await safeRun(getRawUserPost(TEST_PARAMS.userId, 1));
 		if (!data) return;
 		expect(data).toBeInstanceOf(Array);
 	});

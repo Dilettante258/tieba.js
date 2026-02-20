@@ -36,9 +36,7 @@ export const getThreads = createProtoApi({
 	resCodec: FrsPageResIdl,
 	buildRequest: (params: GetThreadsParams) => {
 		// 贴吧 frs 请求固定使用 105，实际返回量由 rnNeed 决定
-		const rnNeed = params.rn
-			? Math.min(Math.max(params.rn, 30), 100)
-			: 30;
+		const rnNeed = params.rn ? Math.min(Math.max(params.rn, 30), 100) : 30;
 
 		return {
 			data: {

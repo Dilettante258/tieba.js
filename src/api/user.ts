@@ -69,7 +69,7 @@ export const getProfile = createProtoApi({
 	reqCodec: ProfileReqIdl,
 	resCodec: ProfileResIdl,
 	buildRequest: (id: number | string) => {
-		const data: Parameters<typeof ProfileReqIdl.fromPartial>['0']['data'] = {
+		const data: Parameters<typeof ProfileReqIdl.fromPartial>["0"]["data"] = {
 			needPostCount: 1,
 			pn: 1,
 			common: {
@@ -151,9 +151,8 @@ export function getFans(
 
 	return Effect.gen(function* () {
 		const from = page === "ALL" ? 1 : Math.max(1, page[0]);
-		const requestedLastPage = page === "ALL"
-			? Number.POSITIVE_INFINITY
-			: Math.max(from, page[1]);
+		const requestedLastPage =
+			page === "ALL" ? Number.POSITIVE_INFINITY : Math.max(from, page[1]);
 		const firstRes = yield* fetchPage(from);
 		const totalPage = Math.max(1, Number(firstRes.page?.total_page ?? 1) || 1);
 		const lastPage =
@@ -179,10 +178,7 @@ export function getFans(
 			const users = r.right.user_list ?? [];
 			// 清理 bazhu_grade 异常值（可能为字符串或数组而非对象）
 			for (const u of users) {
-				if (
-					typeof u.bazhu_grade === "string" ||
-					Array.isArray(u.bazhu_grade)
-				) {
+				if (typeof u.bazhu_grade === "string" || Array.isArray(u.bazhu_grade)) {
 					u.bazhu_grade = undefined;
 				}
 			}
@@ -231,15 +227,15 @@ export function getFollow(
 
 	return Effect.gen(function* () {
 		const from = page === "ALL" ? 1 : Math.max(1, page[0]);
-		const requestedLastPage = page === "ALL"
-			? Number.POSITIVE_INFINITY
-			: Math.max(from, page[1]);
+		const requestedLastPage =
+			page === "ALL" ? Number.POSITIVE_INFINITY : Math.max(from, page[1]);
 		const firstRes = yield* fetchPage(from);
-		const totalPage = Math.max(1, Math.ceil((firstRes.total_follow_num || 0) / 20));
+		const totalPage = Math.max(
+			1,
+			Math.ceil((firstRes.total_follow_num || 0) / 20),
+		);
 		const lastPage =
-			page === "ALL"
-				? totalPage
-				: Math.min(requestedLastPage, totalPage);
+			page === "ALL" ? totalPage : Math.min(requestedLastPage, totalPage);
 
 		if (page !== "ALL" && from > totalPage) {
 			firstRes.follow_list = [];

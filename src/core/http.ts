@@ -57,7 +57,7 @@ export function requestWithRetry(
 	retries = 3,
 	delay = 1000,
 ) {
-	const urlObj = new URL(url, url[0] === 'h' ? undefined : BASE_URL);
+	const urlObj = new URL(url, url[0] === "h" ? undefined : BASE_URL);
 	return Effect.tryPromise({
 		try: async () => {
 			const res = await request(urlObj, withDispatcher(requestOptions));

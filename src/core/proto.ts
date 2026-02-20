@@ -35,9 +35,7 @@ export function createProtoApi<
 		pipe(
 			Effect.succeed(
 				config.reqCodec
-					.encode(
-						config.reqCodec.fromPartial(config.buildRequest(params)),
-					)
+					.encode(config.reqCodec.fromPartial(config.buildRequest(params)))
 					.finish(),
 			),
 			Effect.andThen((buf) => getClient().postProtobuf(config.endpoint, buf)),

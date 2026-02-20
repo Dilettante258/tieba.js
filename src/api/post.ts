@@ -13,7 +13,10 @@ import { AddPostResIdl } from "../generated/AddPostResIdl.ts";
 import { PbFloorReqIdl } from "../generated/PbFloorReqIdl.ts";
 import { PbFloorResIdl } from "../generated/PbFloorResIdl.ts";
 import { PbPageReqIdl } from "../generated/PbPageReqIdl.ts";
-import { PbPageResIdl, type PbPageResIdl_DataRes } from "../generated/PbPageResIdl.ts";
+import {
+	PbPageResIdl,
+	type PbPageResIdl_DataRes,
+} from "../generated/PbPageResIdl.ts";
 import { UserPostReqIdl } from "../generated/UserPostReqIdl.ts";
 import { UserPostResIdl } from "../generated/UserPostResIdl.ts";
 import { processUserPosts } from "../helpers/cache.ts";
@@ -43,7 +46,7 @@ const MAX_PAGE = 600;
 function packPostsProto(params: GetPostsParams): Uint8Array {
 	const rn = Math.min(Math.max(params.rn || 30, 1), 30);
 
-	const data: Parameters<typeof PbPageReqIdl.fromPartial>['0']['data'] = {
+	const data: Parameters<typeof PbPageReqIdl.fromPartial>["0"]["data"] = {
 		kz: params.tid.toString(),
 		pn: params.page || 1,
 		// 单页最大 30
@@ -145,18 +148,15 @@ export function getPosts(
 	return Effect.gen(function* () {
 		// 先抓起始页，再根据真实总页数裁剪请求范围，避免越界页导致重复内容。
 		const from = page === "ALL" ? 1 : Math.max(1, page[0]);
-		const requestedLastPage = page === "ALL"
-			? MAX_PAGE
-			: Math.max(from, page[1]);
+		const requestedLastPage =
+			page === "ALL" ? MAX_PAGE : Math.max(from, page[1]);
 		const firstResult = yield* getSinglePage(makeParams(from));
 		const totalPage = Math.max(
 			1,
 			Math.min(firstResult?.page?.totalPage || 1, MAX_PAGE),
 		);
 		const lastPage =
-			page === "ALL"
-				? totalPage
-				: Math.min(requestedLastPage, totalPage);
+			page === "ALL" ? totalPage : Math.min(requestedLastPage, totalPage);
 
 		if (page !== "ALL" && from > totalPage) {
 			if (firstResult?.postList) firstResult.postList = [];
@@ -171,10 +171,7 @@ export function getPosts(
 			{ length: lastPage - from },
 			(_, i) => from + 1 + i,
 		);
-		const { posts, users } = yield* fetchPages(
-			remaining,
-			makeParams,
-		);
+		const { posts, users } = yield* fetchPages(remaining, makeParams);
 
 		if (firstResult?.postList) {
 			firstResult.postList.push(...posts);
@@ -318,7 +315,10 @@ export function addPost(params: AddPostParams) {
 			},
 		});
 		const buf = AddPostReqIdl.encode(req).finish();
-		const resBuf = yield* getClient().postProtobuf("/c/c/post/add?cmd=309731", buf);
+		const resBuf = yield* getClient().postProtobuf(
+			"/c/c/post/add?cmd=309731",
+			buf,
+		);
 		const res = AddPostResIdl.decode(resBuf);
 		if (res.error?.errorno) {
 			throw new TiebaServerError(res.error.errorno, res.error.errmsg ?? "");

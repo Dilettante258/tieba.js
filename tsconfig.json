@@ -4,16 +4,8 @@
 		"outDir": "./dist",
 		"rootDir": ".",
 		"jsx": "react-jsx",
-		"types": [
-			"bun"
-		],
+		"types": ["bun"]
 	},
-	"include": [
-		"src/**/*",
-		"test"
-	],
-	"exclude": [
-		"node_modules",
-		"dist"
-	]
+	"include": ["src/**/*", "test"],
+	"exclude": ["node_modules", "dist"]
 }

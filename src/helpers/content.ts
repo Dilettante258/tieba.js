@@ -26,9 +26,7 @@ export function processContent(data: ContentItem[], needPlainText = true) {
 						resultString += item.text;
 						break;
 					case 1:
-						resultString += needPlainText
-							? item.text
-							: `${item.text}#[链接]`;
+						resultString += needPlainText ? item.text : `${item.text}#[链接]`;
 						break;
 					case 2:
 					case 11:

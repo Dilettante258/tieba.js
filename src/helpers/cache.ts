@@ -44,10 +44,7 @@ export interface UserPost {
  * 处理用户发帖原始数据，展平 PostInfoList 为 UserPost[]。
  * @param needForumName 为 true 时通过 getForumName API 解析缺失的吧名
  */
-export function processUserPosts(
-	posts: PostInfoList[],
-	needForumName = false,
-) {
+export function processUserPosts(posts: PostInfoList[], needForumName = false) {
 	if (!posts?.length) {
 		return Effect.succeed([] as UserPost[]);
 	}
@@ -66,20 +63,24 @@ export function processUserPosts(
 		const result: UserPost[] = [];
 		for (const post of posts) {
 			// 优先使用缓存查到的吧名，否则用 proto 返回的值
-			const forumName = needForumName && forumCache
-				? yield* forumCache.get(post.forumId)
-				: post.forumName;
+			const forumName =
+				needForumName && forumCache
+					? yield* forumCache.get(post.forumId)
+					: post.forumName;
 
 			for (const entry of post.content) {
 				const affiliated = entry.postType === "1";
 				const isReply =
-					affiliated && entry.postContent.length >= 3 && entry.postContent[1]?.type === 4;
+					affiliated &&
+					entry.postContent.length >= 3 &&
+					entry.postContent[1]?.type === 4;
 				result.push({
 					forumId: Number(post.forumId),
 					forumName,
-					title: post.title[0] === "回" && post.title[2] === "："
-						? post.title.slice(3)
-						: post.title,
+					title:
+						post.title[0] === "回" && post.title[2] === "："
+							? post.title.slice(3)
+							: post.title,
 					threadId: post.threadId,
 					postId: post.postId,
 					cid: entry.postId,
@@ -88,7 +89,7 @@ export function processUserPosts(
 					content: isReply
 						? (entry.postContent[2]?.text ?? "").slice(2)
 						: entry.postContent.length === 1
-							? entry.postContent[0]?.text ?? ""
+							? (entry.postContent[0]?.text ?? "")
 							: entry.postContent.map((item) => item.text).join(""),
 					replyTo: isReply ? entry.postContent[1]?.text : undefined,
 				});

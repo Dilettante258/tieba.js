@@ -38,7 +38,7 @@ export class UserIdResolver {
 		private readonly unCache: IdCache<string>,
 		private readonly idCache: IdCache<number>,
 		private readonly uidCache: IdCache<number>,
-	) { }
+	) {}
 
 	/** 创建实例，初始化三个 Effect Cache */
 	private static make() {
@@ -132,8 +132,7 @@ export class UserIdResolver {
 			}
 
 			const result = map[need as keyof UserIdMap];
-			if (!result)
-				return yield* Effect.fail(new NotFoundError("未找到用户"));
+			if (!result) return yield* Effect.fail(new NotFoundError("未找到用户"));
 			return result;
 		});
 	}

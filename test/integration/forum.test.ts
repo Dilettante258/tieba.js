@@ -20,9 +20,7 @@ describe("Forum APIs", () => {
 	});
 
 	test("getForumDetail — 返回吧信息", async () => {
-		const data = await safeRun(
-			getForumDetail(TEST_PARAMS.forumId),
-		);
+		const data = await safeRun(getForumDetail(TEST_PARAMS.forumId));
 		if (!data) return;
 		expect(data.forumInfo).toBeDefined();
 		expect(data.forumInfo?.forumId).toBeDefined();
@@ -30,9 +28,7 @@ describe("Forum APIs", () => {
 	});
 
 	test("getForumName — 返回吧名字符串", async () => {
-		const data = await safeRun(
-			getForumName(TEST_PARAMS.forumId),
-		);
+		const data = await safeRun(getForumName(TEST_PARAMS.forumId));
 		if (data === null) return;
 		expect(typeof data).toBe("string");
 		expect(data.length).toBeGreaterThan(0);
