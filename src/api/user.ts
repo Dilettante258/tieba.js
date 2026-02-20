@@ -109,7 +109,7 @@ export interface UserPanel {
 export function getPanel(un: string) {
 	return pipe(
 		getData<{ data: UserPanel }>(
-			`/home/get/panel?un=${encodeURIComponent(un)}`,
+			`https://tiebac.baidu.com/home/get/panel?un=${encodeURIComponent(un)}`,
 		),
 		Effect.map((res) => res.data),
 	);
