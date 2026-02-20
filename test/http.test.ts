@@ -12,7 +12,10 @@ describe("HTTP helpers", () => {
 
 		expect(part).toBeDefined();
 		expect(part).toBeInstanceOf(File);
-		expect((part as File).name).toBe(PROTO_MULTIPART_FILENAME);
-		expect((part as File).size).toBe(payload.length);
+		if (!(part instanceof File)) {
+			throw new Error("FormData part 'data' is not a File");
+		}
+		expect(part.name).toBe(PROTO_MULTIPART_FILENAME);
+		expect(part.size).toBe(payload.length);
 	});
 });
