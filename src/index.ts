@@ -68,7 +68,6 @@ export {
 export { type ClientOptions, TiebaClient } from "./client.ts";
 export { getClient, initClient } from "./context.ts";
 export { consume, consumeAll, consumeAllSuccess } from "./core/effect.ts";
-export { resetHttpDispatcher, setHttpDispatcher } from "./core/http.ts";
 export {
 	FetchError,
 	InvalidParamError,
@@ -77,5 +76,7 @@ export {
 	TiebaError,
 	TiebaServerError,
 } from "./core/errors.ts";
-export { type UserPost, processUserPosts } from "./helpers/cache.ts";
+export { resetHttpDispatcher, setHttpDispatcher } from "./core/http.ts";
+export type * from "./generated-types.ts";
+export { processUserPosts, type UserPost } from "./helpers/cache.ts";
 export { MethodEnum, UserIdResolver } from "./helpers/user-id-resolver.ts";
